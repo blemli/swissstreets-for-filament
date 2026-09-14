@@ -35,8 +35,9 @@ it('searches, filters and shows removed addresses', function () {
 
     Livewire::test(ListAddresses::class)
         ->removeTableFilter('used')
-        ->searchTable('Bahnhof')
+        ->searchTable('bahnhof 1 zürich')
         ->assertCanSeeTableRecords([Address::find(200000001)])
+        ->assertCanNotSeeTableRecords([Address::find(300000001)])
         ->assertCanNotSeeTableRecords([Address::find(100297441)])
         ->searchTable('')
         ->filterTable('canton', ['BS'])

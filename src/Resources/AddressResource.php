@@ -64,10 +64,16 @@ class AddressResource extends Resource
 
         return $table
             ->columns([
-                TextColumn::make('street')->label($t('columns.street'))->searchable()->sortable(),
-                TextColumn::make('number')->label($t('columns.number'))->searchable()->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('number_int', $direction)->orderBy('number', $direction)),
-                TextColumn::make('zip')->label($t('columns.zip'))->searchable()->sortable(),
-                TextColumn::make('locality')->label($t('columns.locality'))->searchable()->sortable(),
+                // One multi-word search ("marktgasse 12 bern") over street,
+                // number, ZIP and town — the other columns stay non-searchable
+                // so Filament does not OR a phrase match onto it.
+                TextColumn::make('street')->label($t('columns.street'))->searchable(query: function (Builder $query, string $search): void {
+                    /** @var Builder<Address> $query */
+                    $query->search($search);
+                })->sortable(),
+                TextColumn::make('number')->label($t('columns.number'))->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('number_int', $direction)->orderBy('number', $direction)),
+                TextColumn::make('zip')->label($t('columns.zip'))->sortable(),
+                TextColumn::make('locality')->label($t('columns.locality'))->sortable(),
                 TextColumn::make('commune')->label($t('columns.commune'))->sortable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('canton')->label($t('columns.canton'))->sortable(),
                 TextColumn::make('category')->label($t('columns.category'))->badge()->formatStateUsing(fn (string $state): string => $categories[$state] ?? $state)->toggleable(),
