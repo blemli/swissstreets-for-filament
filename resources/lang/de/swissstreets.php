@@ -6,7 +6,7 @@ return [
     'field' => [
         'placeholder' => 'Strasse, Nummer, PLZ oder Ort suchen',
         'no_results' => 'Keine Adresse gefunden',
-        'custom' => '":text" als Freitext-Adresse verwenden',
+        'custom' => ':text (Freitext)',
         'zip' => 'PLZ / Ort',
         'street' => 'Strasse',
         'number' => 'Nr.',

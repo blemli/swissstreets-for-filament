@@ -6,7 +6,7 @@ return [
     'field' => [
         'placeholder' => 'Cerca via, numero, NPA o località',
         'no_results' => 'Nessun indirizzo trovato',
-        'custom' => 'Usa «:text» come indirizzo libero',
+        'custom' => ':text (testo libero)',
         'zip' => 'NPA / Località',
         'street' => 'Via',
         'number' => 'N.',

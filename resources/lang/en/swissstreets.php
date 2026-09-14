@@ -6,7 +6,7 @@ return [
     'field' => [
         'placeholder' => 'Search street, number, ZIP or town',
         'no_results' => 'No address found',
-        'custom' => 'Use ":text" as free-text address',
+        'custom' => ':text (free text)',
         'zip' => 'ZIP / Town',
         'street' => 'Street',
         'number' => 'No.',

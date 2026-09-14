@@ -6,7 +6,7 @@ return [
     'field' => [
         'placeholder' => 'Rechercher rue, numéro, NPA ou localité',
         'no_results' => 'Aucune adresse trouvée',
-        'custom' => 'Utiliser « :text » comme adresse libre',
+        'custom' => ':text (texte libre)',
         'zip' => 'NPA / Localité',
         'street' => 'Rue',
         'number' => 'N°',

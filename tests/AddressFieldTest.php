@@ -101,7 +101,7 @@ it('offers the free-text option in search results', function () {
     $results = $field->getSearchResults('Nowhere 5');
 
     expect($results)->toHaveKey('custom:Nowhere 5')
-        ->and($results['custom:Nowhere 5'])->toBe('Use "Nowhere 5" as free-text address');
+        ->and($results['custom:Nowhere 5'])->toBe('Nowhere 5 (free text)');
 
     $results = $field->getSearchResults('spalen 113');
 

@@ -7,7 +7,7 @@ return [
     'field' => [
         'placeholder' => 'Tschertgar via, numer, NPA u lieu',
         'no_results' => 'Nagina adressa chattada',
-        'custom' => 'Duvrar «:text» sco adressa libra',
+        'custom' => ':text (text liber)',
         'zip' => 'NPA / Lieu',
         'street' => 'Via',
         'number' => 'Nr.',
