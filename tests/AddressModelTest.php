@@ -4,6 +4,7 @@ use Blemli\Swissstreets\Facades\Swissstreets;
 use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Tests\Fixtures\Customer;
 use Blemli\Swissstreets\Tests\Fixtures\Vendor;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(fn () => importFixture());
 
@@ -52,4 +53,12 @@ it('keeps the relation after the address was removed from the register', functio
 
 it('links to map.geo.admin.ch', function () {
     expect(Address::find(100297441)->mapUrl())->toStartWith('https://map.geo.admin.ch/?E=2610314&N=1267321');
+});
+
+it('discovers trait users through the panel before their model booted', function () {
+    // Insert without touching the Customer model, so bootHasAddress never ran.
+    DB::table('customers')->insert(['name' => 'Alice', 'address_id' => 100297441, 'created_at' => now(), 'updated_at' => now()]);
+    bootPanel();
+
+    expect(Address::used()->pluck('egaid')->all())->toBe([100297441]);
 });
