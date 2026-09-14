@@ -1,0 +1,57 @@
+<?php
+
+return [
+    'address' => 'Adresse',
+    'addresses' => 'Adresses',
+    'field' => [
+        'placeholder' => 'Rechercher rue, numéro, NPA ou localité',
+        'no_results' => 'Aucune adresse trouvée',
+        'custom' => 'Utiliser « :text » comme adresse libre',
+        'zip' => 'NPA / Localité',
+        'street' => 'Rue',
+        'number' => 'N°',
+    ],
+    'columns' => [
+        'egaid' => 'ID d’adresse',
+        'egid' => 'EGID',
+        'street' => 'Rue',
+        'number' => 'N°',
+        'zip' => 'NPA',
+        'locality' => 'Localité',
+        'commune' => 'Commune',
+        'canton' => 'Canton',
+        'category' => 'Catégorie',
+        'lat' => 'Latitude',
+        'lng' => 'Longitude',
+        'easting' => 'Est (MN95)',
+        'northing' => 'Nord (MN95)',
+        'imported_at' => 'Vu la dernière fois',
+        'deleted_at' => 'Supprimée',
+        'usages' => 'Utilisée',
+    ],
+    'filters' => [
+        'used' => 'Utilisées uniquement',
+        'residential' => 'Habitations uniquement',
+        'trashed' => 'Adresses supprimées',
+    ],
+    'categories' => [
+        'residential' => 'Habitation',
+        'other_residential' => 'Autre habitation',
+        'partly_residential' => 'Habitation partielle',
+        'non_residential' => 'Sans habitation',
+        'special' => 'Bâtiment spécial',
+        'temporary' => 'Provisoire',
+    ],
+    'map' => 'Afficher sur la carte',
+    'notification' => [
+        'title' => 'Import des adresses terminé',
+        'body' => ':added ajoutées, :removed supprimées, :restored restaurées en :duration.',
+        'unchanged' => 'Registre des adresses inchangé, rien importé.',
+        'failed' => 'Échec de l’import des adresses',
+    ],
+    'activity' => [
+        'added' => 'Le système a ajouté l’adresse',
+        'removed' => 'Le système a supprimé l’adresse',
+        'restored' => 'Le système a restauré l’adresse',
+    ],
+];

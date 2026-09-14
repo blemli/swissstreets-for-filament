@@ -12,5 +12,5 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 - Added/removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog
 - `HasAddress` trait, `used()` / `near()` / `search()` scopes
 - Import summary as Filament database notification
-- German and English translations
+- Translations: German, French, Italian, Romansh and English
 - `swissstreets:import` and `swissstreets:uninstall` commands

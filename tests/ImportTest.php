@@ -8,7 +8,6 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Spatie\Activitylog\Models\Activity;
 
 it('imports official, real, decimal-free addresses only', function () {
@@ -82,9 +81,12 @@ it('imports unofficial and planned addresses when enabled', function () {
 it('soft deletes addresses that vanished and logs the change', function () {
     importFixture();
 
-    Log::shouldReceive('channel')->andReturnSelf();
-    Log::shouldReceive('info')->once()->with(Mockery::pattern('/removed address 200000002 — Bahnhofstrasse 3, 8001 Zürich/'));
-    Log::shouldReceive('info')->once()->with(Mockery::pattern('/added address 200000003 — Bahnhofstrasse 5, 8001 Zürich/'));
+    // A real single-file channel instead of a Log facade mock — Laravel
+    // itself logs deprecations through the facade on older versions.
+    $logPath = sys_get_temp_dir() . '/swissstreets-test.log';
+    File::delete($logPath);
+    config()->set('logging.channels.swissstreets_test', ['driver' => 'single', 'path' => $logPath]);
+    config()->set('swissstreets-for-filament.log_channel', 'swissstreets_test');
 
     $csv = str_replace(
         '200000002;20000001;900002;0;Bahnhofstrasse;3;',
@@ -96,6 +98,12 @@ it('soft deletes addresses that vanished and logs the change', function () {
 
     $result = app(Importer::class)->run($path);
     File::delete($path);
+
+    $log = File::get($logPath);
+    File::delete($logPath);
+
+    expect($log)->toContain('removed address 200000002 — Bahnhofstrasse 3, 8001 Zürich')
+        ->toContain('added address 200000003 — Bahnhofstrasse 5, 8001 Zürich');
 
     expect($result->added)->toBe(1)
         ->and($result->removed)->toBe(1)

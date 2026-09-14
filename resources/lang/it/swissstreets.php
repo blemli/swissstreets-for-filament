@@ -1,0 +1,57 @@
+<?php
+
+return [
+    'address' => 'Indirizzo',
+    'addresses' => 'Indirizzi',
+    'field' => [
+        'placeholder' => 'Cerca via, numero, NPA o località',
+        'no_results' => 'Nessun indirizzo trovato',
+        'custom' => 'Usa «:text» come indirizzo libero',
+        'zip' => 'NPA / Località',
+        'street' => 'Via',
+        'number' => 'N.',
+    ],
+    'columns' => [
+        'egaid' => 'ID indirizzo',
+        'egid' => 'EGID',
+        'street' => 'Via',
+        'number' => 'N.',
+        'zip' => 'NPA',
+        'locality' => 'Località',
+        'commune' => 'Comune',
+        'canton' => 'Cantone',
+        'category' => 'Categoria',
+        'lat' => 'Latitudine',
+        'lng' => 'Longitudine',
+        'easting' => 'Est (MN95)',
+        'northing' => 'Nord (MN95)',
+        'imported_at' => 'Visto l’ultima volta',
+        'deleted_at' => 'Rimosso',
+        'usages' => 'In uso',
+    ],
+    'filters' => [
+        'used' => 'Solo in uso',
+        'residential' => 'Solo abitazioni',
+        'trashed' => 'Indirizzi rimossi',
+    ],
+    'categories' => [
+        'residential' => 'Abitazione',
+        'other_residential' => 'Altra abitazione',
+        'partly_residential' => 'Parzialmente abitativo',
+        'non_residential' => 'Senza abitazione',
+        'special' => 'Edificio speciale',
+        'temporary' => 'Provvisorio',
+    ],
+    'map' => 'Mostra sulla mappa',
+    'notification' => [
+        'title' => 'Importazione indirizzi completata',
+        'body' => ':added aggiunti, :removed rimossi, :restored ripristinati in :duration.',
+        'unchanged' => 'Registro degli indirizzi invariato, nulla importato.',
+        'failed' => 'Importazione indirizzi fallita',
+    ],
+    'activity' => [
+        'added' => 'Il sistema ha aggiunto l’indirizzo',
+        'removed' => 'Il sistema ha rimosso l’indirizzo',
+        'restored' => 'Il sistema ha ripristinato l’indirizzo',
+    ],
+];
