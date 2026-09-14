@@ -1,0 +1,57 @@
+<?php
+
+return [
+    'address' => 'Address',
+    'addresses' => 'Addresses',
+    'field' => [
+        'placeholder' => 'Search street, number, ZIP or town',
+        'no_results' => 'No address found',
+        'custom' => 'Use ":text" as free-text address',
+        'zip' => 'ZIP / Town',
+        'street' => 'Street',
+        'number' => 'No.',
+    ],
+    'columns' => [
+        'egaid' => 'Address ID',
+        'egid' => 'EGID',
+        'street' => 'Street',
+        'number' => 'No.',
+        'zip' => 'ZIP',
+        'locality' => 'Town',
+        'commune' => 'Commune',
+        'canton' => 'Canton',
+        'category' => 'Category',
+        'lat' => 'Latitude',
+        'lng' => 'Longitude',
+        'easting' => 'Easting (LV95)',
+        'northing' => 'Northing (LV95)',
+        'imported_at' => 'Last seen',
+        'deleted_at' => 'Removed',
+        'usages' => 'Used',
+    ],
+    'filters' => [
+        'used' => 'Used only',
+        'residential' => 'Residential only',
+        'trashed' => 'Removed addresses',
+    ],
+    'categories' => [
+        'residential' => 'Residential',
+        'other_residential' => 'Other residential',
+        'partly_residential' => 'Partly residential',
+        'non_residential' => 'Non-residential',
+        'special' => 'Special',
+        'temporary' => 'Temporary',
+    ],
+    'map' => 'Show on map',
+    'notification' => [
+        'title' => 'Address import finished',
+        'body' => ':added added, :removed removed, :restored restored in :duration.',
+        'unchanged' => 'Address register unchanged, nothing imported.',
+        'failed' => 'Address import failed',
+    ],
+    'activity' => [
+        'added' => 'System added address',
+        'removed' => 'System removed address',
+        'restored' => 'System restored address',
+    ],
+];

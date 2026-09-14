@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create(config('swissstreets-for-filament.table', 'swissstreets_addresses'), function (Blueprint $table) {
+            $table->unsignedBigInteger('egaid')->primary();
+            $table->unsignedBigInteger('egid')->index();
+            $table->string('street')->index();
+            $table->string('number', 16)->nullable();
+            $table->unsignedInteger('number_int')->nullable();
+            $table->unsignedSmallInteger('zip')->index();
+            $table->string('locality');
+            $table->string('commune');
+            $table->string('canton', 2)->index();
+            $table->string('category', 32)->index();
+            $table->decimal('lat', 9, 6)->index();
+            $table->decimal('lng', 9, 6)->index();
+            $table->decimal('easting', 10, 3)->nullable();
+            $table->decimal('northing', 10, 3)->nullable();
+            $table->date('modified_at')->nullable();
+            $table->timestamp('imported_at', 6)->nullable()->index();
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['zip', 'street', 'number_int']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists(config('swissstreets-for-filament.table', 'swissstreets_addresses'));
+    }
+};

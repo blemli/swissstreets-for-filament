@@ -1,0 +1,57 @@
+<?php
+
+return [
+    'address' => 'Adresse',
+    'addresses' => 'Adressen',
+    'field' => [
+        'placeholder' => 'Strasse, Nummer, PLZ oder Ort suchen',
+        'no_results' => 'Keine Adresse gefunden',
+        'custom' => '":text" als Freitext-Adresse verwenden',
+        'zip' => 'PLZ / Ort',
+        'street' => 'Strasse',
+        'number' => 'Nr.',
+    ],
+    'columns' => [
+        'egaid' => 'Adress-ID',
+        'egid' => 'EGID',
+        'street' => 'Strasse',
+        'number' => 'Nr.',
+        'zip' => 'PLZ',
+        'locality' => 'Ort',
+        'commune' => 'Gemeinde',
+        'canton' => 'Kanton',
+        'category' => 'Kategorie',
+        'lat' => 'Breitengrad',
+        'lng' => 'Längengrad',
+        'easting' => 'Ost (LV95)',
+        'northing' => 'Nord (LV95)',
+        'imported_at' => 'Zuletzt gesehen',
+        'deleted_at' => 'Entfernt',
+        'usages' => 'Verwendet',
+    ],
+    'filters' => [
+        'used' => 'Nur verwendete',
+        'residential' => 'Nur Wohnadressen',
+        'trashed' => 'Entfernte Adressen',
+    ],
+    'categories' => [
+        'residential' => 'Wohngebäude',
+        'other_residential' => 'Übriges Wohngebäude',
+        'partly_residential' => 'Teilweise Wohnnutzung',
+        'non_residential' => 'Ohne Wohnnutzung',
+        'special' => 'Sonderbau',
+        'temporary' => 'Provisorisch',
+    ],
+    'map' => 'Auf Karte zeigen',
+    'notification' => [
+        'title' => 'Adressimport abgeschlossen',
+        'body' => ':added neu, :removed entfernt, :restored wiederhergestellt in :duration.',
+        'unchanged' => 'Adressregister unverändert, nichts importiert.',
+        'failed' => 'Adressimport fehlgeschlagen',
+    ],
+    'activity' => [
+        'added' => 'System hat Adresse hinzugefügt',
+        'removed' => 'System hat Adresse entfernt',
+        'restored' => 'System hat Adresse wiederhergestellt',
+    ],
+];
