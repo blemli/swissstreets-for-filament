@@ -50,6 +50,11 @@ return [
         'unchanged' => 'Register da las adressas nunmidà, nagut importà.',
         'failed' => 'Import da las adressas betg reussì',
     ],
+    'map_picker' => [
+        'label' => 'Lieu',
+        'hint' => 'Cliccar sin la charta u tschertgar in’adressa per plazzar il pin.',
+        'clear' => 'Allontanar il pin',
+    ],
     'activity' => [
         'added' => 'Il sistem ha agiuntà l’adressa',
         'removed' => 'Il sistem ha allontanà l’adressa',

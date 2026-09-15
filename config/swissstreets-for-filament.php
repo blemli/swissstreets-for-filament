@@ -71,6 +71,20 @@ return [
 
     'navigation_sort' => null,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Map picker
+    |--------------------------------------------------------------------------
+    | Tiles and Leaflet are fetched from the network; point these at
+    | self-hosted copies for a fully offline panel.
+    */
+    'map' => [
+        'tiles' => 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',
+        'attribution' => '&copy; <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>',
+        'leaflet_js' => 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+        'leaflet_css' => 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',
+    ],
+
     // Table name of the address register.
     'table' => 'swissstreets_addresses',
 ];

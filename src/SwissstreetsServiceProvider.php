@@ -18,6 +18,7 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
         $package->name(static::$name)
             ->hasConfigFile()
             ->hasTranslations()
+            ->hasViews()
             ->hasMigration('create_swissstreets_addresses_table')
             ->hasCommands([ImportCommand::class, UninstallCommand::class])
             ->hasInstallCommand(function (InstallCommand $command): void {

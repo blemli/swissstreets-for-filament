@@ -49,6 +49,11 @@ return [
         'unchanged' => 'Address register unchanged, nothing imported.',
         'failed' => 'Address import failed',
     ],
+    'map_picker' => [
+        'label' => 'Location',
+        'hint' => 'Click the map or search an address to set the pin.',
+        'clear' => 'Remove pin',
+    ],
     'activity' => [
         'added' => 'System added address',
         'removed' => 'System removed address',

@@ -49,6 +49,11 @@ return [
         'unchanged' => 'Registro degli indirizzi invariato, nulla importato.',
         'failed' => 'Importazione indirizzi fallita',
     ],
+    'map_picker' => [
+        'label' => 'Posizione',
+        'hint' => 'Clicca sulla mappa o cerca un indirizzo per posizionare il segnaposto.',
+        'clear' => 'Rimuovi segnaposto',
+    ],
     'activity' => [
         'added' => 'Il sistema ha aggiunto l’indirizzo',
         'removed' => 'Il sistema ha rimosso l’indirizzo',

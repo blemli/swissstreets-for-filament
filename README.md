@@ -29,6 +29,9 @@ class Customer extends Model { use HasAddress; }   // needs an address_id column
 Address::make('address_id')->nonresidential()->nearMe()->allowCustom('address_text')
 Address::cascade('address_id')                     // ZIP → street → existing house numbers only
 
+// Map picker: search the register or drop the pin anywhere (swisstopo tiles, dark mode aware)
+MapPicker::make('location')->lat('latitude')->lng('longitude')->address('address_id')
+
 // Table / infolist
 AddressColumn::make('address')->map()
 AddressEntry::make('address')->map()

@@ -2,6 +2,12 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.2.0 - 2026-09-15
+
+- `MapPicker` form field: Leaflet map with swisstopo tiles, register search jumps the pin, click or drag places it anywhere, writes latitude/longitude (and optionally the address id); dark mode aware; tiles and Leaflet URLs configurable for offline hosting
+- Search: first word matched via index-friendly range comparisons, `ANALYZE` after import, no index on `category` — searches on 2M rows dropped from seconds to milliseconds on SQLite
+- `Address` field falls back to a contains match when no word starts with the input
+
 ## v0.1.0 - 2026-09-14
 
 - `Address` form field: searchable select over the official Swiss address register, `->nonresidential()`, `->near()`, `->nearMe()`, `->allowCustom()`

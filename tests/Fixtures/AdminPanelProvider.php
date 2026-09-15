@@ -23,7 +23,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->resources([CustomerResource::class])
+            ->resources([CustomerResource::class, ShootResource::class])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

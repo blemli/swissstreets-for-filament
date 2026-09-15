@@ -49,6 +49,11 @@ return [
         'unchanged' => 'Registre des adresses inchangé, rien importé.',
         'failed' => 'Échec de l’import des adresses',
     ],
+    'map_picker' => [
+        'label' => 'Emplacement',
+        'hint' => 'Cliquez sur la carte ou cherchez une adresse pour placer le repère.',
+        'clear' => 'Retirer le repère',
+    ],
     'activity' => [
         'added' => 'Le système a ajouté l’adresse',
         'removed' => 'Le système a supprimé l’adresse',

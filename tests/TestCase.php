@@ -72,6 +72,16 @@ class TestCase extends Orchestra
             $table->timestamps();
         });
 
+        Schema::dropIfExists('shoots');
+        Schema::create('shoots', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
+            $table->unsignedBigInteger('address_id')->nullable();
+            $table->timestamps();
+        });
+
         Schema::dropIfExists('vendors');
         Schema::create('vendors', function (Blueprint $table): void {
             $table->id();

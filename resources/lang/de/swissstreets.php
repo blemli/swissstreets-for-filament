@@ -49,6 +49,11 @@ return [
         'unchanged' => 'Adressregister unverändert, nichts importiert.',
         'failed' => 'Adressimport fehlgeschlagen',
     ],
+    'map_picker' => [
+        'label' => 'Standort',
+        'hint' => 'Karte anklicken oder Adresse suchen, um den Pin zu setzen.',
+        'clear' => 'Pin entfernen',
+    ],
     'activity' => [
         'added' => 'System hat Adresse hinzugefügt',
         'removed' => 'System hat Adresse entfernt',
