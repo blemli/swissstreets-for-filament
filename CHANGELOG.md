@@ -14,3 +14,10 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 - Import summary as Filament database notification
 - Translations: German, French, Italian, Romansh and English
 - `swissstreets:import` and `swissstreets:uninstall` commands
+
+Browser QA (Chrome, fotimo host with the full 2.08M-row register on SQLite):
+pick address ✅ · free-text fallback ✅ · state round-trip (edit/view/table) ✅ ·
+dark mode ✅ · light mode ✅ · keyboard (tab, type, arrow, enter) ✅ ·
+addresses resource with used/canton/residential/removed filters + multi-word search ✅ ·
+empty states ✅ · console errors 0 ✅ · failing requests 0 ✅ ·
+`->nearMe()` not verifiable (geolocation denied in the test profile) ⚠️
