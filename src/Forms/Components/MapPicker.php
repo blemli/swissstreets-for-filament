@@ -47,6 +47,7 @@ class MapPicker extends Field
         $this->childComponents(fn (): array => $this->hasSearch() ? [
             Address::make('search')
                 ->hiddenLabel()
+                ->placeholder(fn (): string => __('swissstreets-for-filament::swissstreets.field.placeholder'))
                 ->nonresidential(fn (): bool => $this->isNonResidential())
                 ->live()
                 ->afterStateUpdated(function (mixed $state, Set $set): void {

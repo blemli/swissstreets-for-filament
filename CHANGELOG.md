@@ -8,6 +8,10 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 - Search: first word matched via index-friendly range comparisons, `ANALYZE` after import, no index on `category` — searches on 2M rows dropped from seconds to milliseconds on SQLite
 - `Address` field falls back to a contains match when no word starts with the input
 
+Browser QA (Chrome, fotimo shoot form): map renders with swisstopo tiles ✅ · click moves pin + coordinates ✅ ·
+register search jumps pin ✅ · save writes latitude/longitude ✅ · reload hydrates pin ✅ · dark mode ✅ ·
+search dropdown above the map ✅ · console errors 0 ✅
+
 ## v0.1.0 - 2026-09-14
 
 - `Address` form field: searchable select over the official Swiss address register, `->nonresidential()`, `->near()`, `->nearMe()`, `->allowCustom()`
