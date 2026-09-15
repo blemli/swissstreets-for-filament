@@ -10,6 +10,12 @@ beforeEach(fn () => importFixture());
 
 it('searches across street, number, zip and town', function () {
     expect(Address::search('spalen')->pluck('egaid')->all())->toEqualCanonicalizing([100297441, 100297442, 100297443])
+        ->and(Address::search('SPALEN')->count())->toBe(3)
+        ->and(Address::search('Im langen')->count())->toBe(1)
+        ->and(Address::search('im loh 19')->count())->toBe(1)
+        ->and(Address::search('langen')->count())->toBe(0)
+        ->and(Address::search('langen', contains: true)->count())->toBe(1)
+        ->and(Address::search('zürich')->count())->toBe(2)
         ->and(Address::search('spalen 11')->pluck('egaid')->all())->toEqualCanonicalizing([100297441, 100297442, 100297443])
         ->and(Address::search('spalen 113')->pluck('egaid')->all())->toBe([100297441])
         ->and(Address::search('4055 spalen')->count())->toBe(3)

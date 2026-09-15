@@ -166,19 +166,45 @@ class Address extends Model
     /**
      * Multi-word search across street, number, ZIP and town: "spalen 11 basel".
      *
+     * The first word is matched as a word start with index-friendly range
+     * comparisons (no full scan of two million rows); pass `contains: true`
+     * to match it anywhere instead — slower, but finds "langen" in
+     * "Im langen Loh".
+     *
      * @param  Builder<static>  $query
      */
-    public function scopeSearch(Builder $query, string $search): void
+    public function scopeSearch(Builder $query, string $search, bool $contains = false): void
     {
         $tokens = preg_split('/[\s,]+/', trim($search), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $isWord = fn (string $token): bool => ! preg_match('/^\d{1,5}[a-z]{0,3}$/i', $token);
+
+        // The first word drives the query through the street/locality indexes;
+        // later words only filter the rows it narrowed down, so a LIKE there is cheap.
+        $driver = $contains ? null : collect($tokens)->first($isWord);
 
         foreach ($tokens as $token) {
-            $query->where(function (Builder $query) use ($token): void {
-                $query->where('street', 'like', "%{$token}%")
-                    ->orWhere('locality', 'like', "{$token}%")
-                    ->orWhere('commune', 'like', "{$token}%");
+            // Four digits are a ZIP: an indexed equality instead of LIKEs
+            // across two million rows.
+            if (preg_match('/^\d{4}$/', $token)) {
+                $query->where('zip', (int) $token);
 
-                if (preg_match('/^\d{1,4}$/', $token)) {
+                continue;
+            }
+
+            $query->where(function (Builder $query) use ($token, $driver): void {
+                if ($token === $driver) {
+                    foreach (['street', 'locality', 'commune'] as $column) {
+                        foreach (self::prefixVariants($token) as $prefix) {
+                            $query->orWhere(fn (Builder $q) => $q->where($column, '>=', $prefix)->where($column, '<', $prefix . "\u{10FFFF}"));
+                        }
+                    }
+                } else {
+                    $query->where('street', 'like', "%{$token}%")
+                        ->orWhere('locality', 'like', "{$token}%")
+                        ->orWhere('commune', 'like', "{$token}%");
+                }
+
+                if (preg_match('/^\d{1,3}$/', $token)) {
                     $query->orWhere('zip', 'like', "{$token}%");
                 }
 
@@ -187,6 +213,24 @@ class Address extends Model
                 }
             });
         }
+    }
+
+    /**
+     * Case variants of a typed word start, since range comparisons are
+     * case-sensitive: "spalen" → Spalen, spalen, SPALEN.
+     *
+     * @return array<int, string>
+     */
+    protected static function prefixVariants(string $token): array
+    {
+        $lower = mb_strtolower($token);
+
+        return array_values(array_unique([
+            mb_strtoupper(mb_substr($lower, 0, 1)) . mb_substr($lower, 1),
+            $lower,
+            mb_strtoupper($token),
+            $token,
+        ]));
     }
 
     /**

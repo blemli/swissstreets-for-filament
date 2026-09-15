@@ -18,8 +18,16 @@ beforeEach(function () {
 
 function fieldSearch(Address $field, string $search): array
 {
-    return $field->getSearchQuery($search)->limit(50)->get()->pluck('line', 'egaid')->all();
+    return $field->getSearchQuery($search, contains: true)->limit(50)->get()->pluck('line', 'egaid')->all();
 }
+
+it('falls back to a contains match when no word starts with the input', function () {
+    $field = Address::make('address_id');
+    $field->container(Schema::make(new CreateCustomer)->statePath('data'));
+
+    expect($field->getSearchResults('langen'))->toHaveKey('100265200')
+        ->and($field->getSearchResults('Im langen 19'))->toHaveKey('100265200');
+});
 
 it('offers residential addresses only unless nonresidential() is set', function () {
     $field = Address::make('address_id');
@@ -53,7 +61,7 @@ it('reads the browser position when nearMe() is set', function () {
     $get = new Get($field);
     $field->getContainer()->fill(['address_id__position' => [47.3779, 8.5403]]);
 
-    expect($field->getSearchQuery('strasse', $get)->first()->egaid)->toBeIn([200000001, 200000002]);
+    expect($field->getSearchQuery('strasse', $get, contains: true)->first()->egaid)->toBeIn([200000001, 200000002]);
 });
 
 it('creates a customer with a picked address', function () {

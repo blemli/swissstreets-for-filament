@@ -123,6 +123,8 @@ class Importer
 
         $removed = $this->removeMissing($now, $stamp, $logRows);
 
+        $this->refreshStatistics();
+
         if ($version !== null) {
             Cache::forever(Downloader::VERSION_CACHE_KEY, $version);
         }
@@ -188,6 +190,19 @@ class Importer
         }, 'egaid');
 
         return $count;
+    }
+
+    /**
+     * Fresh planner statistics after two million upserts, so SQLite picks the
+     * street/locality indexes for searches.
+     */
+    protected function refreshStatistics(): void
+    {
+        $connection = (new Address)->getConnection();
+
+        if ($connection->getDriverName() === 'sqlite') {
+            $connection->statement('ANALYZE ' . (new Address)->getTable());
+        }
     }
 
     /**

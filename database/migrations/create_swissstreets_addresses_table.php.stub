@@ -15,10 +15,12 @@ return new class extends Migration
             $table->string('number', 16)->nullable();
             $table->unsignedInteger('number_int')->nullable();
             $table->unsignedSmallInteger('zip')->index();
-            $table->string('locality');
-            $table->string('commune');
+            $table->string('locality')->index();
+            $table->string('commune')->index();
             $table->string('canton', 2)->index();
-            $table->string('category', 32)->index();
+            // No index on category: six distinct values only, and SQLite's
+            // planner would prefer it over the street/locality indexes.
+            $table->string('category', 32);
             $table->decimal('lat', 9, 6)->index();
             $table->decimal('lng', 9, 6)->index();
             $table->decimal('easting', 10, 3)->nullable();

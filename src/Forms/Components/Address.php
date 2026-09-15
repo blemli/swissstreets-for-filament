@@ -172,9 +172,9 @@ class Address extends Select
     /**
      * @return Builder<AddressModel>
      */
-    public function getSearchQuery(string $search, ?Get $get = null): Builder
+    public function getSearchQuery(string $search, ?Get $get = null, bool $contains = false): Builder
     {
-        $query = AddressModel::query()->search($search);
+        $query = AddressModel::query()->search($search, $contains);
 
         if (! $this->isNonResidential()) {
             $query->residential();
@@ -202,9 +202,17 @@ class Address extends Select
             return [];
         }
 
-        $options = $this->getSearchQuery($search, $get)
-            ->limit($this->getOptionsLimit())
-            ->get()
+        $limit = $this->getOptionsLimit();
+
+        // Fast word-start match first; the contains-LIKE fallback only runs
+        // when nothing starts with what was typed ("langen" → Im langen Loh).
+        $addresses = $this->getSearchQuery($search, $get)->limit($limit)->get();
+
+        if ($addresses->isEmpty()) {
+            $addresses = $this->getSearchQuery($search, $get, contains: true)->limit($limit)->get();
+        }
+
+        $options = $addresses
             ->mapWithKeys(fn (AddressModel $address): array => [(string) $address->egaid => $address->line])
             ->all();
 
