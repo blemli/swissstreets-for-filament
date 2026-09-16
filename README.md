@@ -45,4 +45,9 @@ Events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, import
 
 Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel, `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->health()` registers the health check below. Removed addresses are soft-deleted and logged. Remove everything with `php artisan swissstreets:uninstall`.
 
+## Supported plugins
+
+- [spatie/laravel-health](https://github.com/spatie/laravel-health) (shown in the panel by [shuvroroy/filament-spatie-laravel-health](https://filamentphp.com/plugins/shuvroroy-spatie-laravel-health)): `SwissstreetsPlugin::make()->health()` (or `health.enabled` in the config; the installer offers it when the package is installed) registers the "Swiss address register" check — red when no address was created, updated or removed for 21 days, yellow when the last 3 imports failed. Thresholds: `->health(maxAgeDays: 21, maxFailedRuns: 3)`.
+- [spatie/laravel-activitylog](https://github.com/spatie/laravel-activitylog): every added, removed and restored address is recorded as an activity (log name `swissstreets`) when the package is installed; switch off with the `activitylog` config key.
+
 MIT © [blemli](https://github.com/blemli)

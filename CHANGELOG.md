@@ -4,6 +4,7 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 
 ## Unreleased
 
+- README: "Supported plugins" section (spatie/laravel-health, spatie/laravel-activitylog).
 - spatie/laravel-health check `Blemli\Swissstreets\Health\AddressRegisterCheck`: red when no address was created, updated or removed for 21 days, yellow when the last 3 imports failed in a row. Enable with `SwissstreetsPlugin::make()->health()` or the `health.enabled` config key; the installer offers it when spatie/laravel-health is installed. Thresholds `health.max_age_days` / `health.max_failed_runs` (or `->health(maxAgeDays:, maxFailedRuns:)`). Every import run now records its outcome (`Import\ImportStatus`).
 
 - Import: transient network errors against swisstopo (connection reset, DNS hiccup) are retried with backoff (2 s / 5 s / 10 s) on both the version probe and the download; a failing probe no longer aborts the run, it just downloads. Errors read "Could not reach swisstopo (data.geo.admin.ch): … run again: php artisan swissstreets:import" instead of raw cURL text, on the console and in the panel notification. A failed download leaves no `register.csv.zip.part` behind.
