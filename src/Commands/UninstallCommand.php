@@ -71,7 +71,7 @@ class UninstallCommand extends Command
 
         $this->info("Table to drop: {$table}");
 
-        if ($this->option('force') || confirm("Drop table {$table}?")) {
+        if ($this->option('force') || confirm("Drop table {$table}?", default: true)) {
             Schema::drop($table);
             $this->line("  Dropped {$table}.");
         }
@@ -102,7 +102,7 @@ class UninstallCommand extends Command
             $this->line("  - {$path}");
         }
 
-        if (! $this->option('force') && ! confirm('Delete published files?')) {
+        if (! $this->option('force') && ! confirm('Delete published files?', default: true)) {
             return;
         }
 
@@ -127,7 +127,7 @@ class UninstallCommand extends Command
 
         $this->info('Nightly import entry found in routes/console.php.');
 
-        if ($this->option('force') || confirm('Remove it?')) {
+        if ($this->option('force') || confirm('Remove it?', default: true)) {
             $installer->remove();
             $this->line('  Removed the nightly import from routes/console.php.');
         }
@@ -154,7 +154,7 @@ class UninstallCommand extends Command
 
         $this->info("Downloaded register to remove: {$dir}");
 
-        if ($this->option('force') || confirm('Delete it?')) {
+        if ($this->option('force') || confirm('Delete it?', default: true)) {
             File::deleteDirectory($dir);
         }
     }

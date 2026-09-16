@@ -8,6 +8,7 @@ use Blemli\Swissstreets\Commands\UninstallCommand;
 use Blemli\Swissstreets\Health\HealthIntegration;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -27,8 +28,8 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
         $install = (new InstallCommand($package))
             ->publishConfigFile()
             ->publishMigrations()
-            ->askToRunMigrations()
             ->endWith(function (InstallCommand $command): void {
+                $this->askToMigrate($command);
                 $this->askForSchedule($command);
                 $this->askForHealthCheck($command);
                 $this->askToImport($command);
@@ -77,10 +78,42 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
     }
 
     /**
+     * Nothing works without the table, so the default — and the headless
+     * answer under --no-interaction — is yes. spatie's askToRunMigrations()
+     * defaults to no and would leave a provisioning run with a missing table.
+     */
+    protected function askToMigrate(InstallCommand $command): void
+    {
+        $table = $this->tableName();
+
+        if (Schema::hasTable($table)) {
+            $command->line("Table {$table} exists, migration already run.");
+
+            return;
+        }
+
+        if (! $command->confirm("Run the migrations now? (creates {$table})", true)) {
+            $command->line('Skipped. Before the first import: php artisan migrate');
+
+            return;
+        }
+
+        $command->comment('Running migrations...');
+        $command->call('migrate', ['--force' => true]);
+    }
+
+    /**
      * Two million addresses take a while — worth a question, not a surprise.
      */
     protected function askToImport(InstallCommand $command): void
     {
+        if (! Schema::hasTable($this->tableName())) {
+            $command->importFailed = true;
+            $command->warn("Table {$this->tableName()} is missing. Run: php artisan migrate, then: php artisan swissstreets:import");
+
+            return;
+        }
+
         if (! $command->confirm('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', true)) {
             $command->line('Later then: php artisan swissstreets:import');
 
@@ -93,6 +126,11 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
             $command->importFailed = true;
             $command->warn('The address import did not finish. Run it again: php artisan swissstreets:import');
         }
+    }
+
+    protected function tableName(): string
+    {
+        return (string) config('swissstreets-for-filament.table_name', 'swissstreets_addresses');
     }
 
     /**

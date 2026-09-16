@@ -62,3 +62,17 @@ it('queues every job')
 it('keeps Filament\'s CSV importer out of the package')
     ->expect('Blemli\\Swissstreets')
     ->not->toUse('Filament\\Actions\\ImportAction');
+
+it('never uses the default-no migration prompt and gives every confirm an explicit default', function () {
+    foreach (glob(__DIR__ . '/../src/**/*.php') ?: [] as $file) {
+        $source = file_get_contents($file);
+
+        expect($source)->not->toContain('askToRunMigrations(');
+
+        preg_match_all('/confirm\((?:[^()]|\([^()]*\))*\)/', $source, $matches);
+
+        foreach ($matches[0] as $call) {
+            expect($call)->toMatch('/true|false|default:/', "{$file}: {$call}");
+        }
+    }
+});
