@@ -8,9 +8,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -245,126 +243,11 @@ class Address extends Select
     // ---- cascade mode ------------------------------------------------------
 
     /**
-     * ZIP/town → street → house number. Only house numbers that exist for the
-     * chosen street are offered. Stores the EGAID in `$name`.
+     * The same field as three selects (ZIP/town → street → house number) for
+     * people who prefer that; see AddressCascade for the options.
      */
-    public static function cascade(string $name, bool $nonresidential = false): Grid
+    public static function cascade(string $name): AddressCascade
     {
-        $zipField = "{$name}__zip";
-        $streetField = "{$name}__street";
-
-        $base = fn (): Builder => $nonresidential
-            ? AddressModel::query()
-            : AddressModel::query()->residential();
-
-        return Grid::make(['default' => 1, 'md' => 6])
-            ->schema([
-                Select::make($zipField)
-                    ->label(fn (): string => __('swissstreets-for-filament::swissstreets.field.zip'))
-                    ->searchable()
-                    ->searchDebounce(250)
-                    ->native(false)
-                    ->dehydrated(false)
-                    ->live()
-                    ->columnSpan(['md' => 2])
-                    ->getSearchResultsUsing(function (string $search) use ($base): array {
-                        $search = trim($search);
-
-                        if ($search === '') {
-                            return [];
-                        }
-
-                        $key = AddressModel::searchKey($search);
-
-                        return $base()
-                            ->select(['zip', 'locality'])
-                            ->distinct()
-                            ->where(fn (Builder $q) => $q->where(fn (Builder $q) => $q->where('locality_search', '>=', $key)->where('locality_search', '<', $key . "\u{10FFFF}"))->orWhere('zip', 'like', "{$search}%"))
-                            ->orderBy('zip')
-                            ->orderBy('locality')
-                            ->limit(50)
-                            ->get()
-                            ->mapWithKeys(fn (AddressModel $a): array => ["{$a->zip} {$a->locality}" => "{$a->zip} {$a->locality}"])
-                            ->all();
-                    })
-                    ->getOptionLabelUsing(fn (mixed $value): ?string => is_string($value) ? $value : null)
-                    ->afterStateUpdated(function (Set $set) use ($streetField, $name): void {
-                        $set($streetField, null);
-                        $set($name, null);
-                    }),
-
-                Select::make($streetField)
-                    ->label(fn (): string => __('swissstreets-for-filament::swissstreets.field.street'))
-                    ->searchable()
-                    ->native(false)
-                    ->dehydrated(false)
-                    ->live()
-                    ->columnSpan(['md' => 3])
-                    ->disabled(fn (Get $get): bool => blank($get($zipField)))
-                    ->options(function (Get $get) use ($base, $zipField): array {
-                        [$zip, $locality] = self::splitZip($get($zipField));
-
-                        if ($zip === null) {
-                            return [];
-                        }
-
-                        return $base()
-                            ->where('zip', $zip)
-                            ->where('locality', $locality)
-                            ->orderBy('street')
-                            ->distinct()
-                            ->pluck('street', 'street')
-                            ->all();
-                    })
-                    ->afterStateUpdated(fn (Set $set) => $set($name, null)),
-
-                Select::make($name)
-                    ->label(fn (): string => __('swissstreets-for-filament::swissstreets.field.number'))
-                    ->searchable()
-                    ->native(false)
-                    ->columnSpan(['md' => 1])
-                    ->disabled(fn (Get $get): bool => blank($get($streetField)))
-                    ->options(function (Get $get) use ($base, $zipField, $streetField): array {
-                        [$zip, $locality] = self::splitZip($get($zipField));
-                        $street = $get($streetField);
-
-                        if ($zip === null || blank($street)) {
-                            return [];
-                        }
-
-                        return $base()
-                            ->where('zip', $zip)
-                            ->where('locality', $locality)
-                            ->where('street', $street)
-                            ->ordered()
-                            ->get()
-                            ->mapWithKeys(fn (AddressModel $a): array => [(string) $a->egaid => $a->number ?? '–'])
-                            ->all();
-                    })
-                    ->afterStateHydrated(function (mixed $state, Set $set) use ($zipField, $streetField): void {
-                        if (blank($state)) {
-                            return;
-                        }
-
-                        $address = AddressModel::query()->find($state);
-
-                        if ($address) {
-                            $set($zipField, "{$address->zip} {$address->locality}");
-                            $set($streetField, $address->street);
-                        }
-                    }),
-            ]);
-    }
-
-    /**
-     * @return array{0: int|null, 1: string|null}
-     */
-    protected static function splitZip(mixed $value): array
-    {
-        if (! is_string($value) || ! preg_match('/^(\d{4}) (.+)$/', $value, $m)) {
-            return [null, null];
-        }
-
-        return [(int) $m[1], $m[2]];
+        return AddressCascade::for($name);
     }
 }

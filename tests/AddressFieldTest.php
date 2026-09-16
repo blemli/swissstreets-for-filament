@@ -2,6 +2,7 @@
 
 use Blemli\Swissstreets\Forms\Components\Address;
 use Blemli\Swissstreets\Models\Address as AddressModel;
+use Blemli\Swissstreets\Tests\Fixtures\CascadeResource\Pages\CreateCascade;
 use Blemli\Swissstreets\Tests\Fixtures\Customer;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\CreateCustomer;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\ListCustomers;
@@ -164,15 +165,82 @@ it('offers only existing house numbers in cascade mode', function () {
         ->and($street->getOptions())->toBe(['Spalenring' => 'Spalenring'])
         ->and($number->getOptions())->toBe(['100297441' => '113', '100297442' => '115']);
 
-    expect($zip->getSearchResults('40'))->toBe(['4054 Basel' => '4054 Basel', '4055 Basel' => '4055 Basel']);
+    expect($zip->getSearchResults('40'))->toBe(['4054 Basel' => '4054 Basel', '4055 Basel' => '4055 Basel'])
+        ->and($zip->getSearchResults('basel'))->toHaveCount(2)
+        ->and($zip->getOptions())->toBe([]);
 });
 
 it('includes non-residential numbers in cascade mode on request', function () {
-    $grid = Address::cascade('address_id', nonresidential: true);
+    $grid = Address::cascade('address_id')->nonresidential();
     $schema = Schema::make(new CreateCustomer)->statePath('data')->components([$grid]);
     $schema->fill(['address_id' => 100297442]);
 
     expect($grid->getChildSchema()->getComponents()[2]->getOptions())->toHaveKey('100297443');
+});
+
+it('lists the nearest towns first in cascade mode', function () {
+    $grid = Address::cascade('address_id')->near(47.3779, 8.5403);
+    $schema = Schema::make(new CreateCustomer)->statePath('data')->components([$grid]);
+    $schema->fill([]);
+    $zip = $grid->getChildSchema()->getComponents()[0];
+
+    expect(array_key_first($zip->getOptions()))->toBe('8001 Zürich')
+        // Basel is ~75 km from Zürich HB, Belp ~95 km.
+        ->and(array_keys($zip->getSearchResults('b')))->toEqualCanonicalizing(['4054 Basel', '4055 Basel', '3123 Belp'])
+        ->and(array_key_last($zip->getSearchResults('b')))->toBe('3123 Belp');
+});
+
+it('reads the browser position in cascade mode', function () {
+    $grid = Address::cascade('address_id')->nearMe();
+    $schema = Schema::make(new CreateCustomer)->statePath('data')->components([$grid]);
+    $schema->fill(['address_id__position' => [47.5565, 7.5757]]);
+
+    expect($grid->getExtraAttributes()['x-init'])->toContain("\$wire.\$set('data.address_id__position'")
+        ->and(array_key_first($grid->getChildSchema()->getComponents()[0]->getOptions()))->toBe('4055 Basel');
+});
+
+it('adds an unlisted house number through the cascade with freetext()', function () {
+    $component = Livewire::test(CreateCascade::class)
+        ->fillForm(['name' => 'Alice'])
+        ->set('data.address_id__zip', '4055 Basel')
+        ->set('data.address_id__street', 'Spalenring')
+        ->callAction(TestAction::make('createOption')->schemaComponent('address_id'), data: ['number' => '999', 'country' => 'CH'])
+        ->assertHasNoActionErrors();
+
+    $new = AddressModel::manual()->first();
+
+    expect($new->line)->toBe('Spalenring 999, 4055 Basel')
+        ->and($new->country)->toBe('CH')
+        ->and($new->isForeign())->toBeFalse();
+
+    $component->assertFormSet(['address_id' => $new->egaid, 'address_id__zip' => '4055 Basel', 'address_id__street' => 'Spalenring'])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(Customer::first()->address_id)->toBe($new->egaid);
+});
+
+it('adds a foreign address from the town step of the cascade', function () {
+    $component = Livewire::test(CreateCascade::class)
+        ->fillForm(['name' => 'Bob'])
+        ->callAction(TestAction::make('createOption')->schemaComponent('address_id__zip'), data: ['street' => 'Musterweg', 'number' => '7', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE'])
+        ->assertHasNoActionErrors();
+
+    $berlin = AddressModel::manual()->first();
+
+    $component->assertFormSet(['address_id__zip' => '12345 Berlin', 'address_id__street' => 'Musterweg', 'address_id' => $berlin->egaid]);
+
+    expect($berlin->line)->toBe('Musterweg 7, DE-12345 Berlin');
+});
+
+it('hides the cascade create option unless freetext() is on', function () {
+    $grid = Address::cascade('address_id');
+    $schema = Schema::make(new CreateCustomer)->statePath('data')->components([$grid]);
+    $schema->fill([]);
+
+    foreach ($grid->getChildSchema()->getComponents() as $select) {
+        expect($select->getCreateOptionAction()?->isVisible() ?? false)->toBeFalse();
+    }
 });
 
 it('can find an address by id for the option label', function () {
