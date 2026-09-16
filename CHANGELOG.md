@@ -2,6 +2,10 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.4.0 - 2026-09-16
+
+- The nightly import is no longer registered automatically. The installer asks for a time and writes a marked `Schedule::command('swissstreets:import')` block into `routes/console.php`; the uninstaller removes it. `->schedule()` and the `schedule` config key are gone.
+
 ## v0.3.0 - 2026-09-16
 
 - Case- and accent-insensitive search on every driver: normalised `street_search`, `locality_search`, `commune_search` columns ("Zürich" → "zurich", "Écublens" → "ecublens") matched with indexed range comparisons and native `instr()`/`strpos()` — no custom SQL functions, no PHP `LIKE`

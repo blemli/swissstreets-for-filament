@@ -103,6 +103,7 @@ class TestCase extends Orchestra
             public_path('js/blemli'),
             app_path('Providers/Filament'),
             storage_path('app/swissstreets'),
+            base_path('routes/console.php'),
         ] as $path) {
             File::isDirectory($path) ? File::deleteDirectory($path) : File::delete($path);
         }

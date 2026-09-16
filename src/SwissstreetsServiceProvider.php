@@ -4,7 +4,7 @@ namespace Blemli\Swissstreets;
 
 use Blemli\Swissstreets\Commands\ImportCommand;
 use Blemli\Swissstreets\Commands\UninstallCommand;
-use Illuminate\Console\Scheduling\Schedule;
+use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -27,6 +27,7 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
                     ->publishMigrations()
                     ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command): void {
+                        $this->askForSchedule($command);
                         $command->line('Fill the register with: php artisan swissstreets:import');
                     });
             });
@@ -37,19 +38,36 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
         $this->app->singleton(Swissstreets::class);
     }
 
-    public function packageBooted(): void
+    /**
+     * The nightly import is never registered behind the developer's back:
+     * the installer asks for a time and writes the entry into routes/console.php.
+     */
+    protected function askForSchedule(InstallCommand $command): void
     {
-        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
-            $time = config('swissstreets-for-filament.schedule');
+        $installer = new ScheduleInstaller;
 
-            if (blank($time)) {
-                return;
-            }
+        if ($installer->isInstalled()) {
+            $command->line('Nightly import already scheduled in routes/console.php.');
 
-            $schedule->command('swissstreets:import')
-                ->dailyAt((string) $time)
-                ->withoutOverlapping(120)
-                ->runInBackground();
-        });
+            return;
+        }
+
+        $time = trim((string) $command->ask('Schedule the nightly address import at (HH:MM, empty to skip)', '03:00'));
+
+        while ($time !== '' && ! ScheduleInstaller::isValidTime($time)) {
+            $time = trim((string) $command->ask('Please enter a time as HH:MM (empty to skip)', '03:00'));
+        }
+
+        if ($time === '') {
+            $command->line('Skipped. Add it yourself when you are ready:');
+            $command->line($installer->snippet('03:00'));
+
+            return;
+        }
+
+        $result = $installer->install($time);
+        $command->info($result === 'created'
+            ? "Created routes/console.php with the nightly import at {$time}."
+            : "Added the nightly import at {$time} to routes/console.php.");
     }
 }

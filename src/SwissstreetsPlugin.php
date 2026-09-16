@@ -87,15 +87,7 @@ class SwissstreetsPlugin implements Plugin
         return $this;
     }
 
-    // ---- schedule & notifications -----------------------------------------
-
-    /** Nightly import time as HH:MM, or null to disable. */
-    public function schedule(?string $time): static
-    {
-        $this->config['schedule'] = $time;
-
-        return $this;
-    }
+    // ---- logging & notifications ------------------------------------------
 
     public function logChannel(?string $channel): static
     {

@@ -219,10 +219,9 @@ it('fails the artisan command for a missing file', function () {
     $this->artisan('swissstreets:import', ['--file' => '/nope.csv'])->assertFailed();
 });
 
-it('registers the nightly schedule', function () {
+it('does not register a schedule on its own', function () {
     $events = collect(app(Schedule::class)->events())
         ->filter(fn ($event) => str_contains($event->command ?? '', 'swissstreets:import'));
 
-    expect($events)->toHaveCount(1)
-        ->and($events->first()->expression)->toBe('0 3 * * *');
+    expect($events)->toHaveCount(0);
 });

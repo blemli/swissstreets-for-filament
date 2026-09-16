@@ -2,6 +2,7 @@
 
 namespace Blemli\Swissstreets\Commands;
 
+use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -20,6 +21,7 @@ class UninstallCommand extends Command
         $this->dropTable();
         $this->removePublishedFiles();
         $this->removeStorage();
+        $this->removeSchedule();
 
         $registrations = $this->findPluginRegistrations();
 
@@ -107,6 +109,22 @@ class UninstallCommand extends Command
             if (File::isDirectory($dir) && File::allFiles($dir) === [] && File::directories($dir) === []) {
                 File::deleteDirectory($dir);
             }
+        }
+    }
+
+    protected function removeSchedule(): void
+    {
+        $installer = new ScheduleInstaller;
+
+        if (! $installer->isInstalled()) {
+            return;
+        }
+
+        $this->info('Nightly import entry found in routes/console.php.');
+
+        if ($this->option('force') || confirm('Remove it?')) {
+            $installer->remove();
+            $this->line('  Removed the nightly import from routes/console.php.');
         }
     }
 

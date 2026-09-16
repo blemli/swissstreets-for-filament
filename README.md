@@ -12,8 +12,8 @@ Address field for Filament backed by the official Swiss building address registe
 
 ```bash
 composer require blemli/swissstreets-for-filament
-php artisan swissstreets-for-filament:install
-php artisan swissstreets:import      # ~2M addresses; the plugin schedules this nightly at 03:00 itself
+php artisan swissstreets-for-filament:install   # asks for the nightly import time → routes/console.php
+php artisan swissstreets:import                 # ~2M addresses
 ```
 
 ## Use
@@ -40,6 +40,6 @@ AddressEntry::make('address')->map()
 Address::search('bahnhof zürich')->near($lat, $lng, withinKm: 5)->used()
 ```
 
-Plugin options: `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->schedule('03:00')`, `->resource(false)`. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
+Plugin options: `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->resource(false)`. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
 
 MIT © [blemli](https://github.com/blemli)

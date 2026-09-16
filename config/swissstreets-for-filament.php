@@ -40,12 +40,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Schedule & logging
+    | Logging & notifications
     |--------------------------------------------------------------------------
+    | The nightly import is scheduled in routes/console.php by the installer.
     */
-    // Nightly import time (HH:MM); null disables the schedule.
-    'schedule' => '03:00',
-
     // Log channel for added/removed addresses; null = default channel.
     'log_channel' => null,
 
