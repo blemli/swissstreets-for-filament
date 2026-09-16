@@ -3,9 +3,9 @@
 namespace Blemli\Swissstreets;
 
 use Blemli\Swissstreets\Commands\ImportCommand;
+use Blemli\Swissstreets\Commands\InstallCommand;
 use Blemli\Swissstreets\Commands\UninstallCommand;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
-use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -20,17 +20,18 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
             ->hasTranslations()
             ->hasViews()
             ->hasMigration('create_swissstreets_addresses_table')
-            ->hasCommands([ImportCommand::class, UninstallCommand::class])
-            ->hasInstallCommand(function (InstallCommand $command): void {
-                $command
-                    ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
-                    ->endWith(function (InstallCommand $command): void {
-                        $this->askForSchedule($command);
-                        $this->askToImport($command);
-                    });
+            ->hasCommands([ImportCommand::class, UninstallCommand::class]);
+
+        $install = (new InstallCommand($package))
+            ->publishConfigFile()
+            ->publishMigrations()
+            ->askToRunMigrations()
+            ->endWith(function (InstallCommand $command): void {
+                $this->askForSchedule($command);
+                $this->askToImport($command);
             });
+
+        $package->consoleCommands[] = $install;
     }
 
     public function packageRegistered(): void

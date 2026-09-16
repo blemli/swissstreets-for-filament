@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\File;
  */
 class ScheduleInstaller
 {
-    public const MARKER = '// swissstreets: nightly address import (added by swissstreets-for-filament:install)';
+    public const MARKER = '// swissstreets: nightly address import (added by swissstreets:install)';
 
     public function path(): string
     {

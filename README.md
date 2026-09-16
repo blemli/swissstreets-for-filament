@@ -12,7 +12,7 @@ Address field for Filament backed by the official [Swiss building address regist
 
 ```bash
 composer require blemli/swissstreets-for-filament
-php artisan swissstreets-for-filament:install
+php artisan swissstreets:install
 ```
 
 ## Use

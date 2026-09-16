@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
 it('asks for a time and writes the nightly import into routes/console.php', function () {
-    $this->artisan('swissstreets-for-filament:install')
+    $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '04:15')
         ->expectsOutputToContain('Created routes/console.php with the nightly import at 04:15.')
@@ -42,7 +42,7 @@ it('appends to an existing routes/console.php and never duplicates', function ()
 });
 
 it('skips the schedule on an empty answer and prints the snippet', function () {
-    $this->artisan('swissstreets-for-filament:install')
+    $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
         ->expectsOutputToContain('Skipped. Add it yourself when you are ready:')
@@ -54,7 +54,7 @@ it('skips the schedule on an empty answer and prints the snippet', function () {
 });
 
 it('rejects a malformed time until a valid one is given', function () {
-    $this->artisan('swissstreets-for-filament:install')
+    $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '3 am')
         ->expectsQuestion('Please enter a time as HH:MM (empty to skip)', '23:59')
@@ -86,7 +86,7 @@ it('runs the import when asked to at the end of the install', function () {
     $downloader->shouldReceive('download')->once()->andReturn(fixturePath('register.csv'));
     app()->instance(Downloader::class, $downloader);
 
-    $this->artisan('swissstreets-for-filament:install')
+    $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'yes')
