@@ -2,6 +2,10 @@
 
 namespace Blemli\Swissstreets\Import;
 
+use Blemli\Swissstreets\Events\AddressAdded;
+use Blemli\Swissstreets\Events\AddressRemoved;
+use Blemli\Swissstreets\Events\AddressRestored;
+use Blemli\Swissstreets\Events\ImportFinished;
 use Blemli\Swissstreets\Facades\Swissstreets;
 use Blemli\Swissstreets\Models\Address;
 use Closure;
@@ -56,6 +60,7 @@ class Importer
         }
 
         $this->notify($result);
+        ImportFinished::dispatch($result);
 
         return $result;
     }
@@ -227,8 +232,15 @@ class Importer
         $activity = Swissstreets::activitylogAvailable();
         $description = __("swissstreets-for-filament::swissstreets.activity.{$event}");
 
+        $eventClass = [
+            'added' => AddressAdded::class,
+            'removed' => AddressRemoved::class,
+            'restored' => AddressRestored::class,
+        ][$event];
+
         foreach ($addresses as $address) {
             $logger->info(sprintf('swissstreets: %s address %d — %s', $event, $address->egaid, $address->line));
+            $eventClass::dispatch($address);
 
             if ($activity) {
                 activity('swissstreets')

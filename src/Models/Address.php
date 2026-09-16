@@ -2,6 +2,7 @@
 
 namespace Blemli\Swissstreets\Models;
 
+use Blemli\Swissstreets\Events\AddressAdded;
 use Blemli\Swissstreets\Facades\Swissstreets;
 use Blemli\Swissstreets\Geo\Distance;
 use Blemli\Swissstreets\Geo\Lv95;
@@ -124,7 +125,7 @@ class Address extends Model
             ((int) static::withTrashed()->where('egaid', '>=', self::MANUAL_EGAID_START)->max('egaid')) + 1,
         );
 
-        return static::query()->create([
+        $address = static::query()->create([
             'egaid' => $egaid,
             'egid' => null,
             'street' => $street,
@@ -144,6 +145,10 @@ class Address extends Model
             'lng' => $data['lng'] ?? null,
             'imported_at' => null,
         ]);
+
+        AddressAdded::dispatch($address);
+
+        return $address;
     }
 
     public function getLineAttribute(): string

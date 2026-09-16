@@ -1,11 +1,16 @@
 <?php
 
+use Blemli\Swissstreets\Events\AddressAdded;
+use Blemli\Swissstreets\Events\AddressRemoved;
+use Blemli\Swissstreets\Events\AddressRestored;
+use Blemli\Swissstreets\Events\ImportFinished;
 use Blemli\Swissstreets\Import\Downloader;
 use Blemli\Swissstreets\Import\Importer;
 use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Tests\Fixtures\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Spatie\Activitylog\Models\Activity;
@@ -247,4 +252,40 @@ it('never removes manually added addresses on import', function () {
     expect($result->removed)->toBe(0)
         ->and($berlin->fresh()->trashed())->toBeFalse()
         ->and($berlin->fresh()->source)->toBe(Address::SOURCE_MANUAL);
+});
+
+it('dispatches events for added, removed and restored addresses and for the run', function () {
+    importFixture();
+    Address::find(100265200)->delete();
+
+    Event::fake([
+        AddressAdded::class,
+        AddressRemoved::class,
+        AddressRestored::class,
+        ImportFinished::class,
+    ]);
+
+    $csv = str_replace(
+        '200000002;20000001;900002;0;Bahnhofstrasse;3;',
+        '200000003;20000001;900003;0;Bahnhofstrasse;5;',
+        file_get_contents(fixturePath('register.csv')),
+    );
+    $path = sys_get_temp_dir() . '/swissstreets-events.csv';
+    file_put_contents($path, $csv);
+    $result = app(Importer::class)->run($path);
+    File::delete($path);
+
+    Event::assertDispatched(AddressAdded::class, fn ($e) => $e->address->egaid === 200000003);
+    Event::assertDispatched(AddressRemoved::class, fn ($e) => $e->address->egaid === 200000002);
+    Event::assertDispatched(AddressRestored::class, fn ($e) => $e->address->egaid === 100265200);
+    Event::assertDispatched(ImportFinished::class, fn ($e) => $e->result === $result && $e->result->added === 1);
+    Event::assertDispatchedTimes(AddressAdded::class, 1);
+});
+
+it('dispatches AddressAdded for manual addresses', function () {
+    Event::fake([AddressAdded::class]);
+
+    $berlin = Address::createManual(['street' => 'Musterweg', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE']);
+
+    Event::assertDispatched(AddressAdded::class, fn ($e) => $e->address->is($berlin));
 });
