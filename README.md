@@ -1,6 +1,6 @@
 # swissstreets
 
-Every Swiss address. Offline.
+Every Swiss address. Offline. Daily.
 
 ![swissstreets](art/banner.jpg)
 
@@ -13,7 +13,7 @@ Address field for Filament backed by the official Swiss building address registe
 ```bash
 composer require blemli/swissstreets-for-filament
 php artisan swissstreets-for-filament:install
-php artisan swissstreets:import      # ~2M addresses, runs nightly afterwards
+php artisan swissstreets:import      # ~2M addresses; the plugin schedules this nightly at 03:00 itself
 ```
 
 ## Use
