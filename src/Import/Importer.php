@@ -241,28 +241,28 @@ class Importer
 
     protected function notify(ImportResult $result): void
     {
+        // An unchanged register is the normal night — no notification for that.
+        if ($result->unchanged) {
+            return;
+        }
+
         $recipients = Swissstreets::notificationRecipients();
 
         if ($recipients->isEmpty()) {
             return;
         }
 
-        $notification = Notification::make()
+        Notification::make()
             ->title(__('swissstreets-for-filament::swissstreets.notification.title'))
-            ->icon('heroicon-o-map-pin');
-
-        if ($result->unchanged) {
-            $notification->body(__('swissstreets-for-filament::swissstreets.notification.unchanged'))->info();
-        } else {
-            $notification->body(__('swissstreets-for-filament::swissstreets.notification.body', [
+            ->icon('heroicon-o-map-pin')
+            ->body(__('swissstreets-for-filament::swissstreets.notification.body', [
                 'added' => number_format($result->added),
                 'removed' => number_format($result->removed),
                 'restored' => number_format($result->restored),
                 'duration' => $result->duration(),
-            ]))->success();
-        }
-
-        $notification->sendToDatabase($recipients);
+            ]))
+            ->success()
+            ->sendToDatabase($recipients);
     }
 
     protected function notifyFailure(Throwable $e): void

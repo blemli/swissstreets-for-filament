@@ -47,7 +47,6 @@ return [
     'notification' => [
         'title' => 'Import da las adressas terminà',
         'body' => ':added novas, :removed allontanadas, :restored restauradas en :duration.',
-        'unchanged' => 'Register da las adressas nunmidà, nagut importà.',
         'failed' => 'Import da las adressas betg reussì',
     ],
     'map_picker' => [

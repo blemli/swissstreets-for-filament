@@ -46,7 +46,6 @@ return [
     'notification' => [
         'title' => 'Importazione indirizzi completata',
         'body' => ':added aggiunti, :removed rimossi, :restored ripristinati in :duration.',
-        'unchanged' => 'Registro degli indirizzi invariato, nulla importato.',
         'failed' => 'Importazione indirizzi fallita',
     ],
     'map_picker' => [

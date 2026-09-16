@@ -46,7 +46,6 @@ return [
     'notification' => [
         'title' => 'Address import finished',
         'body' => ':added added, :removed removed, :restored restored in :duration.',
-        'unchanged' => 'Address register unchanged, nothing imported.',
         'failed' => 'Address import failed',
     ],
     'map_picker' => [

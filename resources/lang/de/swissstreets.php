@@ -46,7 +46,6 @@ return [
     'notification' => [
         'title' => 'Adressimport abgeschlossen',
         'body' => ':added neu, :removed entfernt, :restored wiederhergestellt in :duration.',
-        'unchanged' => 'Adressregister unverändert, nichts importiert.',
         'failed' => 'Adressimport fehlgeschlagen',
     ],
     'map_picker' => [

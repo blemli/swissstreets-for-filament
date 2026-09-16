@@ -207,6 +207,18 @@ it('sends a summary notification to the configured users', function () {
         ->and($user->notifications()->first()->data['title'])->toBe('Address import finished');
 });
 
+it('stays quiet when the register is unchanged', function () {
+    $user = User::create(['name' => 'Admin', 'email' => 'b@example.com', 'password' => 'x']);
+    bootPanel();
+    importFixture();
+    Cache::forever(Downloader::VERSION_CACHE_KEY, 'same');
+    Http::fake(['*' => Http::response('', 200, ['Last-Modified' => 'same'])]);
+
+    app(Importer::class)->run();
+
+    expect($user->notifications()->count())->toBe(1);
+});
+
 it('runs through the artisan command', function () {
     $this->artisan('swissstreets:import', ['--file' => fixturePath('register.csv')])
         ->expectsOutputToContain('Initial import')

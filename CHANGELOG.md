@@ -2,6 +2,10 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.5.1 - 2026-09-16
+
+- No notification when the nightly import finds the register unchanged
+
 ## v0.5.0 - 2026-09-16
 
 - The addresses table in the panel is opt-in: `SwissstreetsPlugin::make()->table()` (config key `table`). `->resource(false)` and the `resource` key are gone.

@@ -46,7 +46,6 @@ return [
     'notification' => [
         'title' => 'Import des adresses terminé',
         'body' => ':added ajoutées, :removed supprimées, :restored restaurées en :duration.',
-        'unchanged' => 'Registre des adresses inchangé, rien importé.',
         'failed' => 'Échec de l’import des adresses',
     ],
     'map_picker' => [

@@ -40,6 +40,6 @@ AddressEntry::make('address')->map()
 Address::search('bahnhof zürich')->near($lat, $lng, withinKm: 5)->used()
 ```
 
-Plugin options: `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->table()` adds the browsable addresses table to the panel. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
+Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel, `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
 
 MIT © [blemli](https://github.com/blemli)
