@@ -58,7 +58,7 @@ class UninstallCommand extends Command
 
     protected function dropTable(): void
     {
-        $table = (string) config('swissstreets-for-filament.table', 'swissstreets_addresses');
+        $table = (string) config('swissstreets-for-filament.table_name', 'swissstreets_addresses');
 
         if (! Schema::hasTable($table)) {
             return;

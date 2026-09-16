@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('swissstreets-for-filament.table', 'swissstreets_addresses'), function (Blueprint $table) {
+        Schema::create(config('swissstreets-for-filament.table_name', 'swissstreets_addresses'), function (Blueprint $table) {
             $table->unsignedBigInteger('egaid')->primary();
             $table->unsignedBigInteger('egid')->index();
             $table->string('street')->index();
@@ -41,6 +41,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('swissstreets-for-filament.table', 'swissstreets_addresses'));
+        Schema::dropIfExists(config('swissstreets-for-filament.table_name', 'swissstreets_addresses'));
     }
 };

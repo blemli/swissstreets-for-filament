@@ -6,7 +6,7 @@ Every Swiss address. Offline. Daily.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/blemli/swissstreets-for-filament.svg?style=flat-square)](https://packagist.org/packages/blemli/swissstreets-for-filament) [![Tests](https://img.shields.io/github/actions/workflow/status/blemli/swissstreets-for-filament/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/blemli/swissstreets-for-filament/actions?query=workflow%3Atests+branch%3Amain) [![Code Style](https://img.shields.io/github/actions/workflow/status/blemli/swissstreets-for-filament/fix-code-style.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/blemli/swissstreets-for-filament/actions?query=workflow%3Afix-code-style+branch%3Amain) [![Total Downloads](https://img.shields.io/packagist/dt/blemli/swissstreets-for-filament.svg?style=flat-square)](https://packagist.org/packages/blemli/swissstreets-for-filament)
 
-Address field for Filament backed by the official Swiss building address register (swisstopo / Bundesamt für Landestopografie). Nightly update from the official source, works fully offline, sorts by vicinity — no spatial extension required.
+Address field for Filament backed by the official [Swiss building address register](https://www.swisstopo.admin.ch/en/official-directory-of-building-addresses). Nightly update from the official source, works fully offline, sorts by vicinity — no spatial extension required.
 
 ## Install
 
@@ -20,7 +20,7 @@ php artisan swissstreets:import                 # ~2M addresses
 
 ```php
 // Panel
-->plugin(SwissstreetsPlugin::make()->cantons(['BS', 'BL'])->notify(User::class))
+->plugin(SwissstreetsPlugin::make()->cantons(['BS', 'BL'])->table()->notify(User::class))
 
 // Model
 class Customer extends Model { use HasAddress; }   // needs an address_id column
@@ -40,6 +40,6 @@ AddressEntry::make('address')->map()
 Address::search('bahnhof zürich')->near($lat, $lng, withinKm: 5)->used()
 ```
 
-Plugin options: `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->resource(false)`. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
+Plugin options: `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->table()` adds the browsable addresses table to the panel. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
 
 MIT © [blemli](https://github.com/blemli)

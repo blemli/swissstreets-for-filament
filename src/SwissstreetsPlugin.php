@@ -30,7 +30,7 @@ class SwissstreetsPlugin implements Plugin
             app(Swissstreets::class)->notifyUsing($this->notifyUsing);
         }
 
-        if (config('swissstreets-for-filament.resource', true)) {
+        if (config('swissstreets-for-filament.table', false)) {
             $panel->resources([AddressResource::class]);
         }
     }
@@ -115,9 +115,10 @@ class SwissstreetsPlugin implements Plugin
 
     // ---- panel -------------------------------------------------------------
 
-    public function resource(bool $condition = true): static
+    /** Show the read-only, searchable "Addresses" table in the panel (off by default). */
+    public function table(bool $condition = true): static
     {
-        $this->config['resource'] = $condition;
+        $this->config['table'] = $condition;
 
         return $this;
     }

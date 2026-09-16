@@ -3,8 +3,10 @@
 use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Resources\AddressResource;
 use Blemli\Swissstreets\Resources\AddressResource\Pages\ListAddresses;
+use Blemli\Swissstreets\SwissstreetsPlugin;
 use Blemli\Swissstreets\Tests\Fixtures\Customer;
 use Filament\Facades\Filament;
+use Filament\Panel;
 use Filament\Support\Icons\Heroicon;
 use Livewire\Livewire;
 
@@ -12,6 +14,19 @@ beforeEach(function () {
     importFixture();
     loginUser();
     bootPanel();
+});
+
+it('stays out of the panel unless ->table() is called', function () {
+    $panel = Panel::make()->id('bare')->path('bare');
+    config()->set('swissstreets-for-filament.table', false);
+
+    SwissstreetsPlugin::make()->register($panel);
+
+    expect($panel->getResources())->not->toContain(AddressResource::class);
+
+    SwissstreetsPlugin::make()->table()->register($panel);
+
+    expect($panel->getResources())->toContain(AddressResource::class);
 });
 
 it('registers the addresses resource in the panel', function () {

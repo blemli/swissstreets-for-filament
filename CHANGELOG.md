@@ -2,6 +2,11 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.5.0 - 2026-09-16
+
+- The addresses table in the panel is opt-in: `SwissstreetsPlugin::make()->table()` (config key `table`). `->resource(false)` and the `resource` key are gone.
+- Config key for the database table renamed from `table` to `table_name`.
+
 ## v0.4.0 - 2026-09-16
 
 - The nightly import is no longer registered automatically. The installer asks for a time and writes a marked `Schedule::command('swissstreets:import')` block into `routes/console.php`; the uninstaller removes it. `->schedule()` and the `schedule` config key are gone.

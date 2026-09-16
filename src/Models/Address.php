@@ -67,7 +67,7 @@ class Address extends Model
 
     public function getTable(): string
     {
-        return (string) config('swissstreets-for-filament.table', 'swissstreets_addresses');
+        return (string) config('swissstreets-for-filament.table_name', 'swissstreets_addresses');
     }
 
     // ---- presentation ------------------------------------------------------

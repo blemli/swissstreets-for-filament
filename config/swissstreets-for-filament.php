@@ -62,8 +62,8 @@ return [
     | Panel
     |--------------------------------------------------------------------------
     */
-    // Register the read-only "Addresses" resource in the panel.
-    'resource' => true,
+    // Opt in to the read-only "Addresses" table in the panel (SwissstreetsPlugin::make()->table()).
+    'table' => false,
 
     'navigation_group' => null,
 
@@ -83,6 +83,6 @@ return [
         'leaflet_css' => 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',
     ],
 
-    // Table name of the address register.
-    'table' => 'swissstreets_addresses',
+    // Database table of the address register.
+    'table_name' => 'swissstreets_addresses',
 ];
