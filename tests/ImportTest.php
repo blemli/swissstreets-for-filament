@@ -15,10 +15,10 @@ it('imports official, real, decimal-free addresses only', function () {
 
     expect($result->unchanged)->toBeFalse()
         ->and($result->initial)->toBeTrue()
-        ->and($result->total)->toBe(7)
-        ->and($result->added)->toBe(7)
+        ->and($result->total)->toBe(8)
+        ->and($result->added)->toBe(8)
         ->and($result->skipped)->toBe(3)
-        ->and(Address::count())->toBe(7);
+        ->and(Address::count())->toBe(8);
 
     // 65.1 (decimal), planned, unofficial: skipped
     expect(Address::find(102434738))->toBeNull()
@@ -41,6 +41,11 @@ it('imports official, real, decimal-free addresses only', function () {
         ->and($spalenring->line)->toBe('Spalenring 113, 4055 Basel')
         ->and((string) $spalenring)->toBe('Spalenring 113, 4055 Basel')
         ->and($spalenring->modified_at?->toDateString())->toBe('2024-11-15');
+
+    // normalised search keys: lowercase, accents folded
+    expect(Address::find(400000001)->street_search)->toBe("rue de l'eglise")
+        ->and(Address::find(400000001)->locality_search)->toBe('ecublens vd')
+        ->and(Address::find(200000001)->locality_search)->toBe('zurich');
 
     // quoted field with a semicolon inside is parsed, empty number becomes null
     expect(Address::find(300000001)->number)->toBeNull()
@@ -75,7 +80,7 @@ it('imports unofficial and planned addresses when enabled', function () {
     config()->set('swissstreets-for-filament.unofficial', true);
     config()->set('swissstreets-for-filament.planned', true);
 
-    expect(importFixture()->total)->toBe(9);
+    expect(importFixture()->total)->toBe(10);
 });
 
 it('soft deletes addresses that vanished and logs the change', function () {
@@ -140,7 +145,7 @@ it('refuses to wipe the table when the file is empty', function () {
     expect(fn () => app(Importer::class)->run($path))->toThrow(RuntimeException::class);
     File::delete($path);
 
-    expect(Address::count())->toBe(7);
+    expect(Address::count())->toBe(8);
 });
 
 it('reads straight out of the zip', function () {
@@ -150,7 +155,7 @@ it('reads straight out of the zip', function () {
     $zip->addFile(fixturePath('register.csv'), 'amtliches-gebaeudeadressverzeichnis_ch_2056.csv');
     $zip->close();
 
-    expect(app(Importer::class)->run($zipPath)->total)->toBe(7);
+    expect(app(Importer::class)->run($zipPath)->total)->toBe(8);
     File::delete($zipPath);
 })->skip(fn () => ! class_exists(ZipArchive::class), 'ext-zip missing');
 
@@ -207,7 +212,7 @@ it('runs through the artisan command', function () {
         ->expectsOutputToContain('Initial import')
         ->assertSuccessful();
 
-    expect(Address::count())->toBe(7);
+    expect(Address::count())->toBe(8);
 });
 
 it('fails the artisan command for a missing file', function () {

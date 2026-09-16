@@ -2,6 +2,11 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.3.0 - 2026-09-16
+
+- Case- and accent-insensitive search on every driver: normalised `street_search`, `locality_search`, `commune_search` columns ("Zürich" → "zurich", "Écublens" → "ecublens") matched with indexed range comparisons and native `instr()`/`strpos()` — no custom SQL functions, no PHP `LIKE`
+- Schema change: re-publish the migration (or add the three columns) and run `swissstreets:import --force` to backfill
+
 ## v0.2.1 - 2026-09-16
 
 - Type-ahead: search debounce 250 ms instead of Filament's 1000 ms, single characters ignored, later words matched with native `instr()` on SQLite — every keystroke now costs one short round trip

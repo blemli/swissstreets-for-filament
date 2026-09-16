@@ -161,7 +161,7 @@ class Importer
             Address::withTrashed()->upsert(
                 array_values($rows),
                 ['egaid'],
-                ['egid', 'street', 'number', 'number_int', 'zip', 'locality', 'commune', 'canton', 'category', 'lat', 'lng', 'easting', 'northing', 'modified_at', 'imported_at', 'updated_at', 'deleted_at'],
+                ['egid', 'street', 'number', 'number_int', 'zip', 'locality', 'commune', 'street_search', 'locality_search', 'commune_search', 'canton', 'category', 'lat', 'lng', 'easting', 'northing', 'modified_at', 'imported_at', 'updated_at', 'deleted_at'],
             );
         });
 

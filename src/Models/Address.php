@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
 
 /**
@@ -23,6 +24,9 @@ use Illuminate\Support\Stringable;
  * @property int $zip
  * @property string $locality
  * @property string $commune
+ * @property string $street_search
+ * @property string $locality_search
+ * @property string $commune_search
  * @property string $canton
  * @property string $category
  * @property float $lat
@@ -166,10 +170,11 @@ class Address extends Model
     /**
      * Multi-word search across street, number, ZIP and town: "spalen 11 basel".
      *
-     * The first word is matched as a word start with index-friendly range
-     * comparisons (no full scan of two million rows); pass `contains: true`
-     * to match it anywhere instead — slower, but finds "langen" in
-     * "Im langen Loh".
+     * Runs on the normalised *_search columns, so it is case- and accent-
+     * insensitive ("zurich" finds Zürich) without any custom SQL function.
+     * The first word is matched as a word start with an index-friendly range
+     * comparison; pass `contains: true` to match it anywhere instead —
+     * slower, but finds "langen" in "Im langen Loh".
      *
      * @param  Builder<static>  $query
      */
@@ -178,30 +183,28 @@ class Address extends Model
         $tokens = preg_split('/[\s,]+/', trim($search), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         $isWord = fn (string $token): bool => ! preg_match('/^\d{1,5}[a-z]{0,3}$/i', $token);
 
-        // The first word drives the query through the street/locality indexes;
-        // later words only filter the rows it narrowed down, so a LIKE there is cheap.
+        // The first word drives the query through the indexes; later words only
+        // filter the rows it narrowed down, so a contains match there is cheap.
         $driver = $contains ? null : collect($tokens)->first($isWord);
 
         foreach ($tokens as $token) {
-            // Four digits are a ZIP: an indexed equality instead of LIKEs
-            // across two million rows.
+            // Four digits are a ZIP: an indexed equality instead of scanning
+            // two million rows.
             if (preg_match('/^\d{4}$/', $token)) {
                 $query->where('zip', (int) $token);
 
                 continue;
             }
 
-            $query->where(function (Builder $query) use ($token, $driver): void {
-                if ($token === $driver) {
-                    foreach (['street', 'locality', 'commune'] as $column) {
-                        foreach (self::prefixVariants($token) as $prefix) {
-                            $query->orWhere(fn (Builder $q) => $q->where($column, '>=', $prefix)->where($column, '<', $prefix . "\u{10FFFF}"));
-                        }
+            $key = self::searchKey($token);
+
+            $query->where(function (Builder $query) use ($token, $key, $driver): void {
+                foreach (['street_search', 'locality_search', 'commune_search'] as $column) {
+                    if ($token === $driver || $column !== 'street_search') {
+                        $query->orWhere(fn (Builder $q) => $q->where($column, '>=', $key)->where($column, '<', $key . "\u{10FFFF}"));
+                    } else {
+                        self::whereContains($query, $column, $key);
                     }
-                } else {
-                    self::whereContains($query, 'street', $token);
-                    self::whereContains($query, 'locality', $token, prefix: true);
-                    self::whereContains($query, 'commune', $token, prefix: true);
                 }
 
                 if (preg_match('/^\d{1,3}$/', $token)) {
@@ -216,44 +219,24 @@ class Address extends Model
     }
 
     /**
-     * Case-insensitive contains/prefix match. On SQLite this uses the native
-     * instr() instead of LIKE, so an app that overrides like() in PHP (for
-     * unicode-aware matching) does not turn every search into a PHP loop.
-     *
-     * @param  Builder<static>  $query
+     * Lowercase, accent-folded form used for matching: "Écublens" → "ecublens".
      */
-    protected static function whereContains(Builder $query, string $column, string $token, bool $prefix = false): void
+    public static function searchKey(string $value): string
     {
-        if ($query->getModel()->getConnection()->getDriverName() === 'sqlite') {
-            $needle = mb_strtolower($token);
-
-            $query->orWhereRaw(
-                $prefix ? "instr(lower({$column}), ?) = 1" : "instr(lower({$column}), ?) > 0",
-                [$needle],
-            );
-
-            return;
-        }
-
-        $query->orWhere($column, 'like', ($prefix ? '' : '%') . "{$token}%");
+        return trim(Str::ascii(mb_strtolower(trim($value))));
     }
 
     /**
-     * Case variants of a typed word start, since range comparisons are
-     * case-sensitive: "spalen" → Spalen, spalen, SPALEN.
+     * Native substring match on a normalised column — no LIKE, so an app that
+     * overrides like() in PHP does not turn the search into a PHP loop.
      *
-     * @return array<int, string>
+     * @param  Builder<static>  $query
      */
-    protected static function prefixVariants(string $token): array
+    protected static function whereContains(Builder $query, string $column, string $key): void
     {
-        $lower = mb_strtolower($token);
+        $function = $query->getModel()->getConnection()->getDriverName() === 'pgsql' ? 'strpos' : 'instr';
 
-        return array_values(array_unique([
-            mb_strtoupper(mb_substr($lower, 0, 1)) . mb_substr($lower, 1),
-            $lower,
-            mb_strtoupper($token),
-            $token,
-        ]));
+        $query->orWhereRaw("{$function}({$column}, ?) > 0", [$key]);
     }
 
     /**

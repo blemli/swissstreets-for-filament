@@ -163,5 +163,5 @@ it('can find an address by id for the option label', function () {
     $field->state(100297441);
 
     expect($field->getOptionLabel())->toBe('Spalenring 113, 4055 Basel')
-        ->and(AddressModel::count())->toBe(7);
+        ->and(AddressModel::count())->toBe(8);
 });

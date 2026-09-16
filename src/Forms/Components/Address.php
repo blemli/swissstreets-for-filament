@@ -281,10 +281,12 @@ class Address extends Select
                             return [];
                         }
 
+                        $key = AddressModel::searchKey($search);
+
                         return $base()
                             ->select(['zip', 'locality'])
                             ->distinct()
-                            ->where(fn (Builder $q) => $q->where('locality', 'like', "{$search}%")->orWhere('zip', 'like', "{$search}%"))
+                            ->where(fn (Builder $q) => $q->where(fn (Builder $q) => $q->where('locality_search', '>=', $key)->where('locality_search', '<', $key . "\u{10FFFF}"))->orWhere('zip', 'like', "{$search}%"))
                             ->orderBy('zip')
                             ->orderBy('locality')
                             ->limit(50)

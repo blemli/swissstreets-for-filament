@@ -9,3 +9,4 @@
 200000001;20000001;900001;0;Bahnhofstrasse;1;residential;;8001 Zürich;261;Zürich;ZH;real;true;01.01.2025;2683150.000;1247500.000
 200000002;20000001;900002;0;Bahnhofstrasse;3;other_residential;;8001 Zürich;261;Zürich;ZH;real;true;01.01.2025;2683160.000;1247510.000
 300000001;30000001;900003;0;Dorfstrasse;;residential;"Haus; mit Semikolon";3123 Belp;861;Belp;BE;real;true;01.01.2025;2605000.000;1191000.000
+400000001;40000001;900004;0;Rue de l’Église;5;residential;;1024 Écublens VD;5635;Écublens (VD);VD;real;true;01.01.2025;2532000.000;1152000.000

@@ -3,6 +3,7 @@
 namespace Blemli\Swissstreets\Import;
 
 use Blemli\Swissstreets\Geo\Lv95;
+use Blemli\Swissstreets\Models\Address;
 use Carbon\CarbonImmutable;
 
 /**
@@ -74,12 +75,15 @@ class RowMapper
         return [
             'egaid' => (int) $row['ADR_EGAID'],
             'egid' => (int) $row['BDG_EGID'],
-            'street' => trim($row['STN_LABEL']),
+            'street' => $street = trim($row['STN_LABEL']),
             'number' => $number === '' ? null : $number,
             'number_int' => preg_match('/^(\d+)/', $number, $m) ? (int) $m[1] : null,
             'zip' => (int) $zip[1],
-            'locality' => trim($zip[2]),
-            'commune' => trim($row['COM_NAME']),
+            'locality' => $locality = trim($zip[2]),
+            'commune' => $commune = trim($row['COM_NAME']),
+            'street_search' => Address::searchKey($street),
+            'locality_search' => Address::searchKey($locality),
+            'commune_search' => Address::searchKey($commune),
             'canton' => strtoupper(trim($row['COM_CANTON'])),
             'category' => trim($row['BDG_CATEGORY']) ?: 'unknown',
             'lat' => $lat,

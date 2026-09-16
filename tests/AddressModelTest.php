@@ -16,6 +16,13 @@ it('searches across street, number, zip and town', function () {
         ->and(Address::search('langen')->count())->toBe(0)
         ->and(Address::search('langen', contains: true)->count())->toBe(1)
         ->and(Address::search('zürich')->count())->toBe(2)
+        ->and(Address::search('zurich')->count())->toBe(2)
+        ->and(Address::search('ZÜRICH bahnhof')->count())->toBe(2)
+        ->and(Address::search('ecublens')->count())->toBe(1)
+        ->and(Address::search('église')->count())->toBe(0)
+        ->and(Address::search('église', contains: true)->count())->toBe(1)
+        ->and(Address::search('rue eglise 5')->count())->toBe(1)
+        ->and(Address::search('Écublens')->count())->toBe(1)
         ->and(Address::search('spalen 11')->pluck('egaid')->all())->toEqualCanonicalizing([100297441, 100297442, 100297443])
         ->and(Address::search('spalen 113')->pluck('egaid')->all())->toBe([100297441])
         ->and(Address::search('4055 spalen')->count())->toBe(3)
@@ -25,16 +32,16 @@ it('searches across street, number, zip and town', function () {
 });
 
 it('filters residential buildings', function () {
-    expect(Address::residential()->count())->toBe(6)
+    expect(Address::residential()->count())->toBe(7)
         ->and(Address::find(100297443)->isResidential())->toBeFalse();
 });
 
 it('orders by vicinity without a spatial extension', function () {
-    // From Zürich HB: Bahnhofstrasse first, Basel last.
+    // From Zürich HB: Bahnhofstrasse first, Écublens (VD) last.
     $ordered = Address::near(47.3779, 8.5403)->pluck('egaid')->all();
 
     expect(array_slice($ordered, 0, 2))->toEqualCanonicalizing([200000001, 200000002])
-        ->and(end($ordered))->toBe(300000001);
+        ->and(end($ordered))->toBe(400000001);
 
     expect(Address::near(47.3779, 8.5403, withinKm: 5)->count())->toBe(2)
         ->and(Address::find(200000001)->distanceTo(47.3779, 8.5403))->toBeLessThan(1.0);
