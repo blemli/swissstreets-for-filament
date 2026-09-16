@@ -39,6 +39,9 @@ AddressEntry::make('address')->map()
 
 // Query
 Address::search('bahnhof zürich')->near($lat, $lng, withinKm: 5)->used()
+
+// Global search: "spalen 113" finds the customer living there
+class CustomerResource extends Resource { use SearchesAddressGlobally; }   // then list 'address' in getGloballySearchableAttributes()
 ```
 
 Events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, import or `->freetext()` form) and `ImportFinished` (with the `ImportResult`) under `Blemli\Swissstreets\Events`.

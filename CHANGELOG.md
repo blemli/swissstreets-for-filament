@@ -4,6 +4,7 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 
 ## Unreleased
 
+- `Resources\Concerns\SearchesAddressGlobally` for consumer resources: list the address relation (e.g. `'address'`) in `getGloballySearchableAttributes()` and the panel's global search finds records by their address through `Address::scopeSearch()` (accent-folded, ZIP, house number) — same matching as the field and the table. Removed addresses never match; the address line is the default result detail.
 - README: "Supported plugins" section (spatie/laravel-health, spatie/laravel-activitylog).
 - spatie/laravel-health check `Blemli\Swissstreets\Health\AddressRegisterCheck`: red when no address was created, updated or removed for 21 days, yellow when the last 3 imports failed in a row. Enable with `SwissstreetsPlugin::make()->health()` or the `health.enabled` config key; the installer offers it when spatie/laravel-health is installed. Thresholds `health.max_age_days` / `health.max_failed_runs` (or `->health(maxAgeDays:, maxFailedRuns:)`). Every import run now records its outcome (`Import\ImportStatus`).
 

@@ -17,3 +17,5 @@ parameters:
         # The trait is consumer-facing package API; nothing inside this package uses it.
         - identifier: trait.unused
           path: src/Concerns/HasAddress.php
+        - identifier: trait.unused
+          path: src/Resources/Concerns/SearchesAddressGlobally.php

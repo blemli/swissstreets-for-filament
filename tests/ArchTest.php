@@ -38,3 +38,7 @@ it('keeps spatie/laravel-activitylog behind the availability guard')
     ->expect('Blemli\\Swissstreets')
     ->not->toUse('Spatie\\Activitylog')
     ->ignoring([Swissstreets::class, Importer::class]);
+
+it('ships the resource concerns as traits')
+    ->expect('Blemli\\Swissstreets\\Resources\\Concerns')
+    ->toBeTraits();

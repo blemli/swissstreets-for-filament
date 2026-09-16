@@ -3,6 +3,7 @@
 namespace Blemli\Swissstreets\Tests\Fixtures;
 
 use Blemli\Swissstreets\Forms\Components\Address;
+use Blemli\Swissstreets\Resources\Concerns\SearchesAddressGlobally;
 use Blemli\Swissstreets\Tables\Columns\AddressColumn;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\CreateCustomer;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\EditCustomer;
@@ -15,7 +16,16 @@ use Filament\Tables\Table;
 
 class CustomerResource extends Resource
 {
+    use SearchesAddressGlobally;
+
     protected static ?string $model = Customer::class;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'address'];
+    }
 
     protected static ?string $slug = 'customers';
 
