@@ -2,6 +2,10 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.6.0 - 2026-09-16
+
+Foreign and unlisted addresses are real register rows: Address::make()->freetext() adds a + action with a small form (street, number, ZIP, town, country) creating a source=manual row; they show in the addresses table and survive imports. Schema: zip is text, egid/lat/lng/canton nullable, new country and source columns.
+
 ## v0.5.1 - 2026-09-16
 
 - No notification when the nightly import finds the register unchanged
