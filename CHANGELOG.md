@@ -2,6 +2,11 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.7.0 - 2026-09-16
+
+- Laravel events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, from the import or the field's + form; not per row on the very first full import) and `ImportFinished` (carries the `ImportResult`, dispatched after every run) under `Blemli\Swissstreets\Events`
+- Install command renamed to `swissstreets:install` (was `swissstreets-for-filament:install`), matching `swissstreets:import` and `swissstreets:uninstall`
+
 ## v0.6.1 - 2026-09-16
 
 Map picker pin is a heroicon in the panel's primary colour with a shadow (dark mode aware); the installer asks whether to run the import right away.
