@@ -28,7 +28,7 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
                     ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command): void {
                         $this->askForSchedule($command);
-                        $command->line('Fill the register with: php artisan swissstreets:import');
+                        $this->askToImport($command);
                     });
             });
     }
@@ -36,6 +36,20 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(Swissstreets::class);
+    }
+
+    /**
+     * Two million addresses take a while — worth a question, not a surprise.
+     */
+    protected function askToImport(InstallCommand $command): void
+    {
+        if (! $command->confirm('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', true)) {
+            $command->line('Later then: php artisan swissstreets:import');
+
+            return;
+        }
+
+        $command->call('swissstreets:import');
     }
 
     /**

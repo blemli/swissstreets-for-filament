@@ -19,6 +19,7 @@ it('renders the map with the register search and dark-mode styles', function () 
         ->assertSeeHtml('wmts.geo.admin.ch')
         ->assertSeeHtml('leaflet@1.9.4')
         ->assertSeeHtml('.dark .fi-fo-map-picker-map')
+        ->assertSeeHtml('fi-fo-map-picker-pin svg { fill: var(--primary-600)')
         ->assertSee('Click the map or search an address');
 });
 
