@@ -58,7 +58,7 @@ class AddressResource extends Resource
     {
         $t = fn (string $key): string => __("swissstreets-for-filament::swissstreets.{$key}");
 
-        $categories = collect(['residential', 'other_residential', 'partly_residential', 'non_residential', 'special', 'temporary'])
+        $categories = collect(['residential', 'other_residential', 'partly_residential', 'non_residential', 'special', 'temporary', 'manual'])
             ->mapWithKeys(fn (string $c): array => [$c => $t("categories.{$c}")])
             ->all();
 
@@ -75,8 +75,10 @@ class AddressResource extends Resource
                 TextColumn::make('zip')->label($t('columns.zip'))->sortable(),
                 TextColumn::make('locality')->label($t('columns.locality'))->sortable(),
                 TextColumn::make('commune')->label($t('columns.commune'))->sortable()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('canton')->label($t('columns.canton'))->sortable(),
+                TextColumn::make('canton')->label($t('columns.canton'))->sortable()->placeholder('—'),
+                TextColumn::make('country')->label($t('columns.country'))->sortable()->toggleable(),
                 TextColumn::make('category')->label($t('columns.category'))->badge()->formatStateUsing(fn (string $state): string => $categories[$state] ?? $state)->toggleable(),
+                TextColumn::make('source')->label($t('columns.source'))->badge()->color(fn (string $state): string => $state === Address::SOURCE_MANUAL ? 'warning' : 'gray')->formatStateUsing(fn (string $state): string => $state === Address::SOURCE_MANUAL ? $t('categories.manual') : 'swisstopo')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('egaid')->label($t('columns.egaid'))->sortable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('egid')->label($t('columns.egid'))->sortable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('lat')->label($t('columns.lat'))->toggleable(isToggledHiddenByDefault: true),
@@ -104,7 +106,14 @@ class AddressResource extends Resource
                 SelectFilter::make('canton')
                     ->label($t('columns.canton'))
                     ->multiple()
-                    ->options(fn (): array => Address::query()->withTrashed()->distinct()->orderBy('canton')->pluck('canton', 'canton')->all()),
+                    ->options(fn (): array => Address::query()->withTrashed()->whereNotNull('canton')->distinct()->orderBy('canton')->pluck('canton', 'canton')->all()),
+                Filter::make('manual')
+                    ->label($t('filters.manual'))
+                    ->toggle()
+                    ->query(function (Builder $query): void {
+                        /** @var Builder<Address> $query */
+                        $query->manual();
+                    }),
                 SelectFilter::make('category')
                     ->label($t('columns.category'))
                     ->multiple()
@@ -115,7 +124,8 @@ class AddressResource extends Resource
                 Action::make('map')
                     ->label($t('map'))
                     ->icon(Heroicon::OutlinedMap)
-                    ->url(fn (Address $record): string => $record->mapUrl(), shouldOpenInNewTab: true),
+                    ->url(fn (Address $record): ?string => $record->mapUrl(), shouldOpenInNewTab: true)
+                    ->visible(fn (Address $record): bool => $record->mapUrl() !== null),
             ])
             ->paginated([25, 50, 100]);
     }

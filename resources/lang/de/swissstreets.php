@@ -6,10 +6,19 @@ return [
     'field' => [
         'placeholder' => 'Strasse, Nummer, PLZ oder Ort suchen',
         'no_results' => 'Keine Adresse gefunden',
-        'custom' => ':text (Freitext)',
         'zip' => 'PLZ / Ort',
         'street' => 'Strasse',
         'number' => 'Nr.',
+    ],
+    'freetext' => [
+        'action' => 'Adresse ausserhalb des Registers erfassen',
+        'heading' => 'Adresse erfassen',
+        'description' => 'Für Orte, die das Schweizer Register nicht kennt, z. B. im Ausland.',
+        'street' => 'Strasse',
+        'number' => 'Nr.',
+        'zip' => 'PLZ',
+        'locality' => 'Ort',
+        'country' => 'Land (ISO-Code)',
     ],
     'columns' => [
         'egaid' => 'Adress-ID',
@@ -19,6 +28,8 @@ return [
         'zip' => 'PLZ',
         'locality' => 'Ort',
         'commune' => 'Gemeinde',
+        'country' => 'Land',
+        'source' => 'Quelle',
         'canton' => 'Kanton',
         'category' => 'Kategorie',
         'lat' => 'Breitengrad',
@@ -32,6 +43,7 @@ return [
     'filters' => [
         'used' => 'Nur verwendete',
         'residential' => 'Nur Wohnadressen',
+        'manual' => 'Nur manuell erfasste',
         'trashed' => 'Entfernte Adressen',
     ],
     'categories' => [
@@ -40,6 +52,7 @@ return [
         'partly_residential' => 'Teilweise Wohnnutzung',
         'non_residential' => 'Ohne Wohnnutzung',
         'special' => 'Sonderbau',
+        'manual' => 'Manuell erfasst',
         'temporary' => 'Provisorisch',
     ],
     'map' => 'Auf Karte zeigen',

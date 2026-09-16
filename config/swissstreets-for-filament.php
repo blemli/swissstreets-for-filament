@@ -32,6 +32,9 @@ return [
     // Keep the original LV95 easting/northing next to lat/lng.
     'swissgrid' => false,
 
+    // Country preselected in the "add foreign address" form (->freetext()).
+    'default_foreign_country' => 'DE',
+
     // BDG_CATEGORY values the address field offers unless ->nonresidential() is set.
     'residential_categories' => ['residential', 'other_residential', 'partly_residential'],
 

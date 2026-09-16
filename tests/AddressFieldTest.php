@@ -4,8 +4,8 @@ use Blemli\Swissstreets\Forms\Components\Address;
 use Blemli\Swissstreets\Models\Address as AddressModel;
 use Blemli\Swissstreets\Tests\Fixtures\Customer;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\CreateCustomer;
-use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\EditCustomer;
 use Blemli\Swissstreets\Tests\Fixtures\CustomerResource\Pages\ListCustomers;
+use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Livewire\Livewire;
@@ -90,40 +90,58 @@ it('rejects an address id that does not exist', function () {
         ->assertHasFormErrors(['address_id']);
 });
 
-it('stores free text in the custom column and clears it again', function () {
-    Livewire::test(CreateCustomer::class)
-        ->fillForm(['name' => 'Alice', 'address_id' => 'custom:Somewhere 5, Nowhere'])
-        ->call('create')
-        ->assertHasNoFormErrors();
-
-    $customer = Customer::first();
-
-    expect($customer->address_id)->toBeNull()
-        ->and($customer->address_text)->toBe('Somewhere 5, Nowhere');
-
-    Livewire::test(EditCustomer::class, ['record' => $customer->getKey()])
-        ->assertFormSet(['address_id' => 'custom:Somewhere 5, Nowhere'])
-        ->fillForm(['address_id' => 200000001])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
-    expect($customer->fresh()->address_id)->toBe(200000001)
-        ->and($customer->fresh()->address_text)->toBeNull();
-});
-
-it('offers the free-text option in search results', function () {
+it('adds a foreign address as a real row through the create option form', function () {
     $component = Livewire::test(CreateCustomer::class);
     $field = $component->instance()->getSchema('form')->getFlatFields()['address_id'];
 
-    $results = $field->getSearchResults('Nowhere 5');
+    expect($field->allowsFreetext())->toBeTrue()
+        ->and($field->getCreateOptionAction())->not->toBeNull();
 
-    expect($results)->toHaveKey('custom:Nowhere 5')
-        ->and($results['custom:Nowhere 5'])->toBe('Nowhere 5 (free text)');
+    $component
+        ->fillForm(['name' => 'Alice'])
+        ->callAction(TestAction::make('createOption')->schemaComponent('address_id'), data: ['street' => 'Musterweg', 'number' => '7', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'de'])
+        ->assertHasNoActionErrors();
 
-    $results = $field->getSearchResults('spalen 113');
+    $berlin = AddressModel::manual()->first();
 
-    expect($results)->toHaveKey('100297441')
-        ->and($results['100297441'])->toBe('Spalenring 113, 4055 Basel');
+    expect($berlin)->not->toBeNull()
+        ->and($berlin->egaid)->toBe(AddressModel::MANUAL_EGAID_START)
+        ->and($berlin->country)->toBe('DE')
+        ->and($berlin->line)->toBe('Musterweg 7, DE-12345 Berlin')
+        ->and($berlin->egid)->toBeNull()
+        ->and($berlin->isForeign())->toBeTrue();
+
+    $component->assertFormSet(['address_id' => $berlin->egaid])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(Customer::first()->address_id)->toBe($berlin->egaid)
+        ->and(Customer::first()->address->line)->toBe('Musterweg 7, DE-12345 Berlin');
+});
+
+it('offers manual rows in the search and validates the country code', function () {
+    AddressModel::createManual(['street' => 'Musterweg', 'number' => '7', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE']);
+    AddressModel::createManual(['street' => 'Hauptstrasse', 'zip' => '9490', 'locality' => 'Vaduz', 'country' => 'LI']);
+
+    $field = Address::make('address_id');
+    $field->container(Schema::make(new CreateCustomer)->statePath('data'));
+
+    expect($field->getSearchResults('musterweg berlin'))->toHaveKey((string) AddressModel::MANUAL_EGAID_START)
+        ->and($field->getSearchResults('12345'))->toHaveCount(1)
+        ->and($field->getSearchResults('vaduz'))->toHaveCount(1)
+        ->and(AddressModel::find(AddressModel::MANUAL_EGAID_START + 1)->line)->toBe('Hauptstrasse, LI-9490 Vaduz');
+
+    Livewire::test(CreateCustomer::class)
+        ->callAction(TestAction::make('createOption')->schemaComponent('address_id'), data: ['street' => 'X', 'zip' => '1', 'locality' => 'Y', 'country' => 'Germany'])
+        ->assertHasActionErrors(['country']);
+});
+
+it('hides the create option unless freetext() is on', function () {
+    $field = Address::make('address_id');
+    $field->container(Schema::make(new CreateCustomer)->statePath('data'));
+
+    expect($field->allowsFreetext())->toBeFalse()
+        ->and($field->getCreateOptionAction()?->isVisible() ?? false)->toBeFalse();
 });
 
 it('renders the address column with a map link', function () {

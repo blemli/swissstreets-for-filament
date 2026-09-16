@@ -31,7 +31,7 @@ it('imports official, real, decimal-free addresses only', function () {
         ->and($spalenring->street)->toBe('Spalenring')
         ->and($spalenring->number)->toBe('113')
         ->and($spalenring->number_int)->toBe(113)
-        ->and($spalenring->zip)->toBe(4055)
+        ->and($spalenring->zip)->toBe('4055')
         ->and($spalenring->locality)->toBe('Basel')
         ->and($spalenring->commune)->toBe('Basel')
         ->and($spalenring->canton)->toBe('BS')
@@ -236,4 +236,15 @@ it('does not register a schedule on its own', function () {
         ->filter(fn ($event) => str_contains($event->command ?? '', 'swissstreets:import'));
 
     expect($events)->toHaveCount(0);
+});
+
+it('never removes manually added addresses on import', function () {
+    importFixture();
+    $berlin = Address::createManual(['street' => 'Musterweg', 'number' => '7', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'de']);
+
+    $result = app(Importer::class)->run(fixturePath('register.csv'), force: true);
+
+    expect($result->removed)->toBe(0)
+        ->and($berlin->fresh()->trashed())->toBeFalse()
+        ->and($berlin->fresh()->source)->toBe(Address::SOURCE_MANUAL);
 });

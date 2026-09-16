@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create(config('swissstreets-for-filament.table_name', 'swissstreets_addresses'), function (Blueprint $table) {
             $table->unsignedBigInteger('egaid')->primary();
-            $table->unsignedBigInteger('egid')->index();
+            $table->unsignedBigInteger('egid')->nullable()->index();
             $table->string('street')->index();
             $table->string('number', 16)->nullable();
             $table->unsignedInteger('number_int')->nullable();
-            $table->unsignedSmallInteger('zip')->index();
+            // Text: German ZIPs have five digits, others have letters.
+            $table->string('zip', 16)->index();
             $table->string('locality');
             $table->string('commune');
             // Lowercase, accent-folded copies ("Zürich" → "zurich") so search is
@@ -22,12 +23,16 @@ return new class extends Migration
             $table->string('street_search')->index();
             $table->string('locality_search')->index();
             $table->string('commune_search')->index();
-            $table->string('canton', 2)->index();
+            $table->string('canton', 2)->nullable()->index();
+            $table->string('country', 2)->default('CH')->index();
+            // 'register' rows come from swisstopo; 'manual' rows are foreign or
+            // otherwise unlisted addresses added through the field.
+            $table->string('source', 16)->default('register')->index();
             // No index on category: six distinct values only, and SQLite's
             // planner would prefer it over the street/locality indexes.
             $table->string('category', 32);
-            $table->decimal('lat', 9, 6)->index();
-            $table->decimal('lng', 9, 6)->index();
+            $table->decimal('lat', 9, 6)->nullable()->index();
+            $table->decimal('lng', 9, 6)->nullable()->index();
             $table->decimal('easting', 10, 3)->nullable();
             $table->decimal('northing', 10, 3)->nullable();
             $table->date('modified_at')->nullable();

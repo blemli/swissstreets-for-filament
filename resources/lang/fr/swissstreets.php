@@ -6,10 +6,19 @@ return [
     'field' => [
         'placeholder' => 'Rechercher rue, numéro, NPA ou localité',
         'no_results' => 'Aucune adresse trouvée',
-        'custom' => ':text (texte libre)',
         'zip' => 'NPA / Localité',
         'street' => 'Rue',
         'number' => 'N°',
+    ],
+    'freetext' => [
+        'action' => 'Ajouter une adresse hors registre',
+        'heading' => 'Ajouter une adresse',
+        'description' => 'Pour les lieux que le registre suisse ne connaît pas, p. ex. à l’étranger.',
+        'street' => 'Rue',
+        'number' => 'N°',
+        'zip' => 'NPA',
+        'locality' => 'Localité',
+        'country' => 'Pays (code ISO)',
     ],
     'columns' => [
         'egaid' => 'ID d’adresse',
@@ -19,6 +28,8 @@ return [
         'zip' => 'NPA',
         'locality' => 'Localité',
         'commune' => 'Commune',
+        'country' => 'Pays',
+        'source' => 'Source',
         'canton' => 'Canton',
         'category' => 'Catégorie',
         'lat' => 'Latitude',
@@ -32,6 +43,7 @@ return [
     'filters' => [
         'used' => 'Utilisées uniquement',
         'residential' => 'Habitations uniquement',
+        'manual' => 'Saisies manuelles uniquement',
         'trashed' => 'Adresses supprimées',
     ],
     'categories' => [
@@ -40,6 +52,7 @@ return [
         'partly_residential' => 'Habitation partielle',
         'non_residential' => 'Sans habitation',
         'special' => 'Bâtiment spécial',
+        'manual' => 'Saisie manuelle',
         'temporary' => 'Provisoire',
     ],
     'map' => 'Afficher sur la carte',

@@ -68,7 +68,6 @@ class TestCase extends Orchestra
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('address_id')->nullable();
-            $table->string('address_text')->nullable();
             $table->timestamps();
         });
 

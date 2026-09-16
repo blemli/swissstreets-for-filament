@@ -75,3 +75,16 @@ it('discovers trait users through the panel before their model booted', function
 
     expect(Address::used()->pluck('egaid')->all())->toBe([100297441]);
 });
+
+it('sorts rows without coordinates last and keeps them out of a radius', function () {
+    $berlin = Address::createManual(['street' => 'Musterweg', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE']);
+
+    $ordered = Address::near(47.3779, 8.5403)->pluck('egaid')->all();
+
+    expect(end($ordered))->toBe($berlin->egaid)
+        ->and(Address::near(47.3779, 8.5403, withinKm: 5)->pluck('egaid')->all())->not->toContain($berlin->egaid)
+        ->and($berlin->distanceTo(47.3779, 8.5403))->toBeNull()
+        ->and($berlin->mapUrl())->toBeNull()
+        ->and($berlin->isResidential())->toBeTrue()
+        ->and(Address::residential()->pluck('egaid')->all())->toContain($berlin->egaid);
+});

@@ -34,7 +34,7 @@ final class Distance
         $cosLat = cos(deg2rad($lat));
         $expr = "(({$table}.lat - ?) * ({$table}.lat - ?)) + (({$table}.lng - ?) * ({$table}.lng - ?) * ?)";
 
-        return $query->orderByRaw($expr, [$lat, $lat, $lng, $lng, $cosLat * $cosLat]);
+        return $query->orderByRaw("({$table}.lat is null)")->orderByRaw($expr, [$lat, $lat, $lng, $lng, $cosLat * $cosLat]);
     }
 
     public static function kilometres(float $lat1, float $lng1, float $lat2, float $lng2): float

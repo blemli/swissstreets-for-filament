@@ -4,12 +4,14 @@ namespace Blemli\Swissstreets\Forms\Components;
 
 use Blemli\Swissstreets\Models\Address as AddressModel;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * Searchable select over the official Swiss address register. Stores the
@@ -17,8 +19,6 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Address extends Select
 {
-    protected const CUSTOM_PREFIX = 'custom:';
-
     protected bool | Closure $isNonResidential = false;
 
     /** @var array{0: float, 1: float}|Closure|null */
@@ -28,7 +28,7 @@ class Address extends Select
 
     protected float | Closure | null $withinKm = null;
 
-    protected ?string $customColumn = null;
+    protected bool | Closure $allowsFreetext = false;
 
     protected function setUp(): void
     {
@@ -46,31 +46,14 @@ class Address extends Select
         $this->getSearchResultsUsing(fn (string $search, Get $get): array => $this->searchAddresses($search, $get));
         $this->getOptionLabelUsing(fn (mixed $value): ?string => $this->optionLabel($value));
 
-        $this->afterStateHydrated(function (Address $component, mixed $state, ?Model $record): void {
-            if (filled($state) || ! $component->customColumn || ! $record) {
-                return;
-            }
-
-            $text = $record->getAttribute($component->customColumn);
-
-            if (filled($text)) {
-                $component->state(self::CUSTOM_PREFIX . $text);
-            }
-        });
-
-        $this->dehydrateStateUsing(fn (mixed $state): mixed => self::isCustom($state) ? null : $state);
-
-        $this->saveRelationshipsUsing(function (Address $component, ?Model $record, mixed $state): void {
-            if (! $component->customColumn || ! $record) {
-                return;
-            }
-
-            $text = self::isCustom($state) ? self::customText($state) : null;
-
-            if ($record->getAttribute($component->customColumn) !== $text) {
-                $record->forceFill([$component->customColumn => $text])->saveQuietly();
-            }
-        });
+        $this->createOptionForm(fn (): array => $this->allowsFreetext() ? self::freetextForm() : [])
+            ->createOptionUsing(fn (array $data): int => AddressModel::createManual($data)->egaid)
+            ->createOptionAction(fn (Action $action): Action => $action
+                ->label(fn (): string => __('swissstreets-for-filament::swissstreets.freetext.action'))
+                ->modalHeading(fn (): string => __('swissstreets-for-filament::swissstreets.freetext.heading'))
+                ->modalDescription(fn (): string => __('swissstreets-for-filament::swissstreets.freetext.description'))
+                ->modalWidth('lg')
+                ->visible(fn (): bool => $this->allowsFreetext()));
     }
 
     // ---- configuration -----------------------------------------------------
@@ -104,17 +87,47 @@ class Address extends Select
         return $this;
     }
 
-    /** Accept free text when nothing matches; stored in the given column. */
-    public function allowCustom(string $column = 'address_text'): static
+    /**
+     * Let users add an address the register does not know — foreign, or
+     * simply missing. It becomes a real row (source "manual") so it shows up
+     * in the addresses table like any other.
+     */
+    public function freetext(bool | Closure $condition = true): static
     {
-        $this->customColumn = $column;
+        $this->allowsFreetext = $condition;
 
         return $this;
     }
 
-    public function getCustomColumn(): ?string
+    public function allowsFreetext(): bool
     {
-        return $this->customColumn;
+        return (bool) $this->evaluate($this->allowsFreetext);
+    }
+
+    /**
+     * The "add foreign address" form; reused by the cascade mode.
+     *
+     * @return array<int, Component>
+     */
+    public static function freetextForm(): array
+    {
+        $t = fn (string $key): string => __("swissstreets-for-filament::swissstreets.freetext.{$key}");
+
+        return [
+            TextInput::make('street')->label($t('street'))->required()->maxLength(120)->columnSpan(3),
+            TextInput::make('number')->label($t('number'))->maxLength(16)->columnSpan(1),
+            TextInput::make('zip')->label($t('zip'))->required()->maxLength(16)->columnSpan(1),
+            TextInput::make('locality')->label($t('locality'))->required()->maxLength(120)->columnSpan(3),
+            TextInput::make('country')
+                ->label($t('country'))
+                ->default(fn (): string => (string) config('swissstreets-for-filament.default_foreign_country', 'DE'))
+                ->required()
+                ->length(2)
+                ->alpha()
+                ->extraInputAttributes(['style' => 'text-transform: uppercase'])
+                ->dehydrateStateUsing(fn (?string $state): string => strtoupper((string) $state))
+                ->columnSpan(1),
+        ];
     }
 
     public function isNonResidential(): bool
@@ -194,7 +207,7 @@ class Address extends Select
     }
 
     /**
-     * @return array<string, string>
+     * @return array<int|string, string>
      */
     protected function searchAddresses(string $search, Get $get): array
     {
@@ -215,15 +228,9 @@ class Address extends Select
             $addresses = $this->getSearchQuery($search, $get, contains: true)->limit($limit)->get();
         }
 
-        $options = $addresses
+        return $addresses
             ->mapWithKeys(fn (AddressModel $address): array => [(string) $address->egaid => $address->line])
             ->all();
-
-        if ($this->customColumn && mb_strlen($search) >= 3) {
-            $options[self::CUSTOM_PREFIX . $search] = __('swissstreets-for-filament::swissstreets.field.custom', ['text' => $search]);
-        }
-
-        return $options;
     }
 
     protected function optionLabel(mixed $value): ?string
@@ -232,21 +239,7 @@ class Address extends Select
             return null;
         }
 
-        if (self::isCustom($value)) {
-            return $this->customColumn ? self::customText($value) : null;
-        }
-
         return AddressModel::query()->find($value)?->line;
-    }
-
-    public static function isCustom(mixed $state): bool
-    {
-        return is_string($state) && str_starts_with($state, self::CUSTOM_PREFIX);
-    }
-
-    public static function customText(string $state): string
-    {
-        return trim(substr($state, strlen(self::CUSTOM_PREFIX)));
     }
 
     // ---- cascade mode ------------------------------------------------------

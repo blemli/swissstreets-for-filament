@@ -7,10 +7,19 @@ return [
     'field' => [
         'placeholder' => 'Tschertgar via, numer, NPA u lieu',
         'no_results' => 'Nagina adressa chattada',
-        'custom' => ':text (text liber)',
         'zip' => 'NPA / Lieu',
         'street' => 'Via',
         'number' => 'Nr.',
+    ],
+    'freetext' => [
+        'action' => 'Agiuntar in’adressa ordaifer il register',
+        'heading' => 'Agiuntar in’adressa',
+        'description' => 'Per lieus che il register svizzer na conuscha betg, p.ex. a l’exteriur.',
+        'street' => 'Via',
+        'number' => 'Nr.',
+        'zip' => 'NPA',
+        'locality' => 'Lieu',
+        'country' => 'Pajais (code ISO)',
     ],
     'columns' => [
         'egaid' => 'ID da l’adressa',
@@ -20,6 +29,8 @@ return [
         'zip' => 'NPA',
         'locality' => 'Lieu',
         'commune' => 'Vischnanca',
+        'country' => 'Pajais',
+        'source' => 'Funtauna',
         'canton' => 'Chantun',
         'category' => 'Categoria',
         'lat' => 'Latitudine',
@@ -33,6 +44,7 @@ return [
     'filters' => [
         'used' => 'Mo duvradas',
         'residential' => 'Mo adressas d’abitar',
+        'manual' => 'Mo agiuntadas manualmain',
         'trashed' => 'Adressas allontanadas',
     ],
     'categories' => [
@@ -41,6 +53,7 @@ return [
         'partly_residential' => 'Per part abitada',
         'non_residential' => 'Senza abitaziun',
         'special' => 'Edifizi spezial',
+        'manual' => 'Agiuntà manualmain',
         'temporary' => 'Provisoric',
     ],
     'map' => 'Mussar sin la charta',

@@ -161,7 +161,7 @@ class Importer
             Address::withTrashed()->upsert(
                 array_values($rows),
                 ['egaid'],
-                ['egid', 'street', 'number', 'number_int', 'zip', 'locality', 'commune', 'street_search', 'locality_search', 'commune_search', 'canton', 'category', 'lat', 'lng', 'easting', 'northing', 'modified_at', 'imported_at', 'updated_at', 'deleted_at'],
+                ['egid', 'street', 'number', 'number_int', 'zip', 'locality', 'commune', 'street_search', 'locality_search', 'commune_search', 'canton', 'country', 'source', 'category', 'lat', 'lng', 'easting', 'northing', 'modified_at', 'imported_at', 'updated_at', 'deleted_at'],
             );
         });
 
@@ -175,7 +175,8 @@ class Importer
 
     protected function removeMissing(string $now, string $stamp, bool $logRows): int
     {
-        $query = Address::query()->where(fn ($q) => $q->where('imported_at', '<', $now)->orWhereNull('imported_at'));
+        // Manual (foreign) rows are not in the register and must survive every import.
+        $query = Address::query()->register()->where(fn ($q) => $q->where('imported_at', '<', $now)->orWhereNull('imported_at'));
         $count = 0;
 
         $query->clone()->orderBy('egaid')->chunkById(500, function ($addresses) use (&$count, $logRows, $stamp): void {

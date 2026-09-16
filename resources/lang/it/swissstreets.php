@@ -6,10 +6,19 @@ return [
     'field' => [
         'placeholder' => 'Cerca via, numero, NPA o località',
         'no_results' => 'Nessun indirizzo trovato',
-        'custom' => ':text (testo libero)',
         'zip' => 'NPA / Località',
         'street' => 'Via',
         'number' => 'N.',
+    ],
+    'freetext' => [
+        'action' => 'Aggiungi indirizzo fuori dal registro',
+        'heading' => 'Aggiungi indirizzo',
+        'description' => 'Per luoghi che il registro svizzero non conosce, ad es. all’estero.',
+        'street' => 'Via',
+        'number' => 'N.',
+        'zip' => 'NPA',
+        'locality' => 'Località',
+        'country' => 'Paese (codice ISO)',
     ],
     'columns' => [
         'egaid' => 'ID indirizzo',
@@ -19,6 +28,8 @@ return [
         'zip' => 'NPA',
         'locality' => 'Località',
         'commune' => 'Comune',
+        'country' => 'Paese',
+        'source' => 'Fonte',
         'canton' => 'Cantone',
         'category' => 'Categoria',
         'lat' => 'Latitudine',
@@ -32,6 +43,7 @@ return [
     'filters' => [
         'used' => 'Solo in uso',
         'residential' => 'Solo abitazioni',
+        'manual' => 'Solo inseriti manualmente',
         'trashed' => 'Indirizzi rimossi',
     ],
     'categories' => [
@@ -40,6 +52,7 @@ return [
         'partly_residential' => 'Parzialmente abitativo',
         'non_residential' => 'Senza abitazione',
         'special' => 'Edificio speciale',
+        'manual' => 'Inserito manualmente',
         'temporary' => 'Provvisorio',
     ],
     'map' => 'Mostra sulla mappa',

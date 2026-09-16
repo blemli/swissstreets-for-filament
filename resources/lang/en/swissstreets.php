@@ -6,10 +6,19 @@ return [
     'field' => [
         'placeholder' => 'Search street, number, ZIP or town',
         'no_results' => 'No address found',
-        'custom' => ':text (free text)',
         'zip' => 'ZIP / Town',
         'street' => 'Street',
         'number' => 'No.',
+    ],
+    'freetext' => [
+        'action' => 'Add address not in the register',
+        'heading' => 'Add address',
+        'description' => 'For places the Swiss register does not list, e.g. abroad. Life is messy.',
+        'street' => 'Street',
+        'number' => 'No.',
+        'zip' => 'ZIP',
+        'locality' => 'Town',
+        'country' => 'Country (ISO code)',
     ],
     'columns' => [
         'egaid' => 'Address ID',
@@ -19,6 +28,8 @@ return [
         'zip' => 'ZIP',
         'locality' => 'Town',
         'commune' => 'Commune',
+        'country' => 'Country',
+        'source' => 'Source',
         'canton' => 'Canton',
         'category' => 'Category',
         'lat' => 'Latitude',
@@ -32,6 +43,7 @@ return [
     'filters' => [
         'used' => 'Used only',
         'residential' => 'Residential only',
+        'manual' => 'Added manually only',
         'trashed' => 'Removed addresses',
     ],
     'categories' => [
@@ -40,6 +52,7 @@ return [
         'partly_residential' => 'Partly residential',
         'non_residential' => 'Non-residential',
         'special' => 'Special',
+        'manual' => 'Added manually',
         'temporary' => 'Temporary',
     ],
     'map' => 'Show on map',

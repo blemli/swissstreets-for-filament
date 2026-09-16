@@ -23,7 +23,7 @@ class CustomerResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->required(),
-            Address::make('address_id')->allowCustom('address_text'),
+            Address::make('address_id')->freetext(),
         ]);
     }
 

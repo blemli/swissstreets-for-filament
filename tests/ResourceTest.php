@@ -75,3 +75,14 @@ it('renders in German', function () {
         ->assertSee('Nur verwendete')
         ->assertSee('Strasse');
 });
+
+it('lists manual foreign rows with their own filter', function () {
+    $berlin = Address::createManual(['street' => 'Musterweg', 'number' => '7', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE']);
+
+    Livewire::test(ListAddresses::class)
+        ->removeTableFilter('used')
+        ->filterTable('manual', true)
+        ->assertCanSeeTableRecords([$berlin])
+        ->assertCanNotSeeTableRecords([Address::find(100297441)])
+        ->assertSee('DE');
+});

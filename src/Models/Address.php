@@ -17,20 +17,22 @@ use Illuminate\Support\Stringable;
  * One row of the official Swiss building address register.
  *
  * @property int $egaid
- * @property int $egid
+ * @property int|null $egid
  * @property string $street
  * @property string|null $number
  * @property int|null $number_int
- * @property int $zip
+ * @property string $zip
  * @property string $locality
  * @property string $commune
  * @property string $street_search
  * @property string $locality_search
  * @property string $commune_search
- * @property string $canton
+ * @property string|null $canton
+ * @property string $country
+ * @property string $source
  * @property string $category
- * @property float $lat
- * @property float $lng
+ * @property float|null $lat
+ * @property float|null $lng
  * @property float|null $easting
  * @property float|null $northing
  * @property Carbon|null $modified_at
@@ -44,6 +46,15 @@ class Address extends Model
 {
     use SoftDeletes;
 
+    public const SOURCE_REGISTER = 'register';
+
+    public const SOURCE_MANUAL = 'manual';
+
+    public const CATEGORY_MANUAL = 'manual';
+
+    /** Manual rows get ids far above the official EGAID range. */
+    public const MANUAL_EGAID_START = 9_000_000_000;
+
     protected $primaryKey = 'egaid';
 
     public $incrementing = false;
@@ -56,7 +67,7 @@ class Address extends Model
         'egaid' => 'integer',
         'egid' => 'integer',
         'number_int' => 'integer',
-        'zip' => 'integer',
+        'zip' => 'string',
         'lat' => 'float',
         'lng' => 'float',
         'easting' => 'float',
@@ -77,9 +88,62 @@ class Address extends Model
         return trim($this->street . ' ' . $this->number);
     }
 
+    /** Swiss convention for foreign places: "DE-12345 Berlin". */
     public function getCityLineAttribute(): string
     {
-        return "{$this->zip} {$this->locality}";
+        $prefix = $this->isForeign() ? "{$this->country}-" : '';
+
+        return trim("{$prefix}{$this->zip} {$this->locality}");
+    }
+
+    public function isForeign(): bool
+    {
+        return filled($this->country) && strtoupper($this->country) !== 'CH';
+    }
+
+    public function isManual(): bool
+    {
+        return $this->source === self::SOURCE_MANUAL;
+    }
+
+    /**
+     * Add an address the register does not know — foreign, or simply missing.
+     *
+     * @param  array{street: string, number?: string|null, zip: string, locality: string, commune?: string|null, country?: string|null, lat?: float|null, lng?: float|null}  $data
+     */
+    public static function createManual(array $data): static
+    {
+        $number = trim((string) ($data['number'] ?? ''));
+        $country = strtoupper(trim((string) ($data['country'] ?? 'CH'))) ?: 'CH';
+        $locality = trim($data['locality']);
+        $street = trim($data['street']);
+        $commune = trim((string) ($data['commune'] ?? '')) ?: $locality;
+
+        $egaid = max(
+            self::MANUAL_EGAID_START,
+            ((int) static::withTrashed()->where('egaid', '>=', self::MANUAL_EGAID_START)->max('egaid')) + 1,
+        );
+
+        return static::query()->create([
+            'egaid' => $egaid,
+            'egid' => null,
+            'street' => $street,
+            'number' => $number === '' ? null : $number,
+            'number_int' => preg_match('/^(\d+)/', $number, $m) ? (int) $m[1] : null,
+            'zip' => trim((string) $data['zip']),
+            'locality' => $locality,
+            'commune' => $commune,
+            'street_search' => self::searchKey($street),
+            'locality_search' => self::searchKey($locality),
+            'commune_search' => self::searchKey($commune),
+            'canton' => null,
+            'country' => $country,
+            'category' => self::CATEGORY_MANUAL,
+            'source' => self::SOURCE_MANUAL,
+            'lat' => $data['lat'] ?? null,
+            'lng' => $data['lng'] ?? null,
+            'imported_at' => null,
+        ]);
     }
 
     public function getLineAttribute(): string
@@ -97,8 +161,16 @@ class Address extends Model
         return $this->line;
     }
 
-    public function mapUrl(): string
+    public function mapUrl(): ?string
     {
+        if ($this->lat === null || $this->lng === null) {
+            return null;
+        }
+
+        if ($this->isForeign()) {
+            return sprintf('https://www.openstreetmap.org/?mlat=%F&mlon=%F#map=17/%F/%F', $this->lat, $this->lng, $this->lat, $this->lng);
+        }
+
         [$e, $n] = [$this->easting, $this->northing];
 
         if ($e === null || $n === null) {
@@ -108,14 +180,19 @@ class Address extends Model
         return sprintf('https://map.geo.admin.ch/?E=%d&N=%d&zoom=10&crosshair=marker', $e, $n);
     }
 
-    public function distanceTo(float $lat, float $lng): float
+    public function distanceTo(float $lat, float $lng): ?float
     {
+        if ($this->lat === null || $this->lng === null) {
+            return null;
+        }
+
         return Distance::kilometres($this->lat, $this->lng, $lat, $lng);
     }
 
     public function isResidential(): bool
     {
-        return in_array($this->category, (array) config('swissstreets-for-filament.residential_categories', []), true);
+        return $this->isManual()
+            || in_array($this->category, (array) config('swissstreets-for-filament.residential_categories', []), true);
     }
 
     // ---- scopes ------------------------------------------------------------
@@ -125,7 +202,26 @@ class Address extends Model
      */
     public function scopeResidential(Builder $query): void
     {
-        $query->whereIn('category', (array) config('swissstreets-for-filament.residential_categories', []));
+        // Manual rows carry no building category and are always offered.
+        $query->where(fn (Builder $q) => $q
+            ->whereIn('category', (array) config('swissstreets-for-filament.residential_categories', []))
+            ->orWhere('source', self::SOURCE_MANUAL));
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     */
+    public function scopeRegister(Builder $query): void
+    {
+        $query->where('source', self::SOURCE_REGISTER);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     */
+    public function scopeManual(Builder $query): void
+    {
+        $query->where('source', self::SOURCE_MANUAL);
     }
 
     /**
@@ -188,10 +284,11 @@ class Address extends Model
         $driver = $contains ? null : collect($tokens)->first($isWord);
 
         foreach ($tokens as $token) {
-            // Four digits are a ZIP: an indexed equality instead of scanning
-            // two million rows.
+            // Four digits are a Swiss ZIP: an indexed equality instead of
+            // scanning two million rows. Five digits may be a German ZIP or a
+            // house number, so both are tried below.
             if (preg_match('/^\d{4}$/', $token)) {
-                $query->where('zip', (int) $token);
+                $query->where('zip', $token);
 
                 continue;
             }
@@ -207,7 +304,7 @@ class Address extends Model
                     }
                 }
 
-                if (preg_match('/^\d{1,3}$/', $token)) {
+                if (preg_match('/^\d{1,3}$/', $token) || preg_match('/^\d{5}$/', $token)) {
                     $query->orWhere('zip', 'like', "{$token}%");
                 }
 
