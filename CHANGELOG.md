@@ -2,6 +2,11 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.8.0 - 2026-09-16
+
+- `Address::cascade('address_id')` now returns an `AddressCascade` with the same features as the single field: `->nearMe()` / `->near()` list the nearest towns first (and on open, before typing), `->nonresidential()`, and `->freetext()` puts the add-address form on every step — an unlisted house number (or street, or a foreign town) becomes a manual register row and is selected in all three selects.
+- The second positional argument of `cascade()` is gone; use `->nonresidential()`.
+
 ## v0.7.0 - 2026-09-16
 
 - Laravel events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, from the import or the field's + form; not per row on the very first full import) and `ImportFinished` (carries the `ImportResult`, dispatched after every run) under `Blemli\Swissstreets\Events`
