@@ -10,7 +10,8 @@ class ImportCommand extends Command
 {
     public $signature = 'swissstreets:import
         {--file= : Import a local .zip or .csv instead of downloading}
-        {--force : Import even if the remote file has not changed}';
+        {--force : Import even if the remote file has not changed}
+        {--unlock : Release a lock left behind by a killed run, then import}';
 
     public $description = 'Import the official Swiss building address register (swisstopo)';
 
@@ -30,8 +31,18 @@ class ImportCommand extends Command
             $this->output->write("\r  " . number_format($rows) . ' rows read');
         });
 
+        // Ctrl-C / kill: free the lock and the half download instead of leaving
+        // "still running" behind for the next two hours. No-op without pcntl.
+        $this->trap(fn (): array => [SIGINT, SIGTERM], function (int $signal) use ($importer): void {
+            $importer->abort();
+            $this->newLine();
+            $this->error('Import aborted.');
+
+            exit(128 + $signal);
+        });
+
         try {
-            $result = $importer->run($file, (bool) $this->option('force'));
+            $result = $importer->run($file, (bool) $this->option('force'), (bool) $this->option('unlock'));
         } catch (Throwable $e) {
             $this->newLine();
             $this->error($e->getMessage());

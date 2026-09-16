@@ -2,6 +2,12 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## Unreleased
+
+- Import: transient network errors against swisstopo (connection reset, DNS hiccup) are retried with backoff (2 s / 5 s / 10 s) on both the version probe and the download; a failing probe no longer aborts the run, it just downloads. Errors read "Could not reach swisstopo (data.geo.admin.ch): … run again: php artisan swissstreets:import" instead of raw cURL text, on the console and in the panel notification. A failed download leaves no `register.csv.zip.part` behind.
+- Install: a failed first import makes `swissstreets:install` exit non-zero and print the command to run again.
+- Import lock: `swissstreets:import --unlock` releases a lock left behind by a killed run (and the scheduler's `withoutOverlapping` mutex). The refusal names the holder ("running since 14:03, PID 4711 on host, started from the command line"); a lock whose process died on the same host is released automatically. Ctrl-C / SIGTERM now release the lock and delete the half download. `swissstreets:uninstall` forgets lock and version stamp. Lock TTL 4 h (was 2 h). New `Import\ImportLock` and `Import\ImportFailed`.
+
 ## v0.8.0 - 2026-09-16
 
 - `Address::cascade('address_id')` now returns an `AddressCascade` with the same features as the single field: `->nearMe()` / `->near()` list the nearest towns first (and on open, before typing), `->nonresidential()`, and `->freetext()` puts the add-address form on every step — an unlisted house number (or street, or a foreign town) becomes a manual register row and is selected in all three selects.

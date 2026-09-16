@@ -4,15 +4,20 @@ use Blemli\Swissstreets\Events\AddressAdded;
 use Blemli\Swissstreets\Events\AddressRemoved;
 use Blemli\Swissstreets\Events\AddressRestored;
 use Blemli\Swissstreets\Events\ImportFinished;
+use Blemli\Swissstreets\Import\CsvReader;
 use Blemli\Swissstreets\Import\Downloader;
 use Blemli\Swissstreets\Import\Importer;
+use Blemli\Swissstreets\Import\ImportFailed;
+use Blemli\Swissstreets\Import\ImportLock;
 use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Tests\Fixtures\User;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use Spatie\Activitylog\Models\Activity;
 
 it('imports official, real, decimal-free addresses only', function () {
@@ -288,4 +293,154 @@ it('dispatches AddressAdded for manual addresses', function () {
     $berlin = Address::createManual(['street' => 'Musterweg', 'zip' => '12345', 'locality' => 'Berlin', 'country' => 'DE']);
 
     Event::assertDispatched(AddressAdded::class, fn ($e) => $e->address->is($berlin));
+});
+
+// --- transient network errors (docs/task/2026-09-16-import-connection-reset.md)
+
+it('retries a reset version probe before trusting the answer', function () {
+    Sleep::fake();
+    importFixture();
+    Cache::forever(Downloader::VERSION_CACHE_KEY, 'same');
+    Http::fakeSequence()
+        ->pushFailedConnection('cURL error 35: Recv failure: Connection reset by peer (see https://curl.se/libcurl/c/libcurl-errors.html) for https://data.geo.admin.ch/x.zip')
+        ->push('', 200, ['Last-Modified' => 'same']);
+
+    expect(app(Importer::class)->run()->unchanged)->toBeTrue();
+
+    Http::assertSentCount(2);
+    Sleep::assertSleptTimes(1);
+});
+
+it('imports even when the version probe never reaches swisstopo', function () {
+    Sleep::fake();
+    importFixture();
+    Cache::forever(Downloader::VERSION_CACHE_KEY, 'old');
+    Http::fake(['*' => Http::failedConnection()]);
+
+    $downloader = Mockery::mock(Downloader::class)->makePartial();
+    $downloader->shouldReceive('download')->once()->andReturn(fixturePath('register.csv'));
+    app()->instance(Downloader::class, $downloader);
+
+    $result = app(Importer::class)->run();
+
+    expect($result->unchanged)->toBeFalse()
+        ->and(Cache::get(Downloader::VERSION_CACHE_KEY))->toBe('old');
+    Http::assertSentCount(1 + count(Downloader::BACKOFF_MS));
+});
+
+it('leaves no half-written download behind when swisstopo keeps resetting', function () {
+    Sleep::fake();
+    Http::fake(['*' => Http::failedConnection('cURL error 35: Recv failure: Connection reset by peer (see https://curl.se/libcurl/c/libcurl-errors.html) for https://data.geo.admin.ch/x.zip')]);
+
+    $part = app(Downloader::class)->zipPath() . '.part';
+    File::ensureDirectoryExists(dirname($part));
+    File::put($part, 'half');
+
+    try {
+        app(Downloader::class)->download();
+        $this->fail('download() should have thrown');
+    } catch (ImportFailed $e) {
+        expect($e->getMessage())->toBe('Could not reach swisstopo (data.geo.admin.ch): Recv failure: Connection reset by peer. Check the network and run again: php artisan swissstreets:import');
+    }
+
+    expect(File::exists($part))->toBeFalse();
+    Http::assertSentCount(1 + count(Downloader::BACKOFF_MS));
+});
+
+it('does not retry an HTTP error answer', function () {
+    Sleep::fake();
+    Http::fake(['*' => Http::response('', 503)]);
+
+    expect(fn () => app(Downloader::class)->download())->toThrow(ImportFailed::class, 'swisstopo answered HTTP 503');
+    Http::assertSentCount(1);
+});
+
+it('tells the operator what to do when swisstopo is unreachable', function () {
+    Sleep::fake();
+    Http::fake(['*' => Http::failedConnection()]);
+
+    // One expectsOutputToContain() per written line only — so read the buffer instead.
+    expect(Artisan::call('swissstreets:import'))->toBe(1)
+        ->and(Artisan::output())
+        ->toContain('Could not reach swisstopo (data.geo.admin.ch)')
+        ->toContain('run again: php artisan swissstreets:import')
+        ->not->toContain('cURL error');
+});
+
+// --- stale lock (docs/task/2026-09-16-import-stale-lock.md)
+
+it('refuses to run beside another import and says how to unlock', function () {
+    holdImportLock(['pid' => 4711, 'host' => 'elsewhere']);
+
+    expect(Artisan::call('swissstreets:import', ['--file' => fixturePath('register.csv')]))->toBe(1)
+        ->and(Artisan::output())
+        ->toContain('running since 2026-09-16 14:03')
+        ->toContain('PID 4711 on elsewhere')
+        ->toContain('started from the command line')
+        ->toContain('php artisan swissstreets:import --unlock')
+        ->toContain('schedule:clear-cache');
+
+    expect(Address::count())->toBe(0)
+        ->and((new ImportLock)->isLocked())->toBeTrue();
+});
+
+it('releases a stale lock with --unlock and imports', function () {
+    holdImportLock(['pid' => 4711, 'host' => 'elsewhere']);
+
+    $this->artisan('swissstreets:import', ['--file' => fixturePath('register.csv'), '--unlock' => true])
+        ->assertSuccessful();
+
+    expect(Address::count())->toBe(8)
+        ->and((new ImportLock)->isLocked())->toBeFalse()
+        ->and((new ImportLock)->metadata())->toBeNull();
+});
+
+it('also clears the scheduler overlap mutex on --unlock', function () {
+    $event = app(Schedule::class)->command('swissstreets:import')->dailyAt('03:00')->withoutOverlapping(120);
+    $event->mutex->create($event);
+    expect($event->mutex->exists($event))->toBeTrue();
+
+    $this->artisan('swissstreets:import', ['--file' => fixturePath('register.csv'), '--unlock' => true])
+        ->assertSuccessful();
+
+    expect($event->mutex->exists($event))->toBeFalse();
+});
+
+it('heals a lock whose process died on this host', function () {
+    $pid = 4194000;
+    while (posix_kill($pid, 0)) {
+        $pid--;
+    }
+    holdImportLock(['pid' => $pid, 'host' => gethostname()]);
+
+    $this->artisan('swissstreets:import', ['--file' => fixturePath('register.csv')])
+        ->assertSuccessful();
+
+    expect(Address::count())->toBe(8)
+        ->and((new ImportLock)->isLocked())->toBeFalse();
+})->skip(fn () => ! function_exists('posix_kill'), 'ext-posix missing');
+
+it('keeps a lock whose process is alive on this host', function () {
+    holdImportLock(['pid' => getmypid(), 'host' => gethostname()]);
+
+    $this->artisan('swissstreets:import', ['--file' => fixturePath('register.csv')])
+        ->expectsOutputToContain('PID ' . getmypid())
+        ->assertFailed();
+
+    expect(Address::count())->toBe(0);
+})->skip(fn () => ! function_exists('posix_kill'), 'ext-posix missing');
+
+it('frees the lock and the half download when aborted by a signal', function () {
+    $lock = new ImportLock;
+    expect($lock->acquire())->toBeTrue();
+
+    $part = app(Downloader::class)->zipPath() . '.part';
+    File::ensureDirectoryExists(dirname($part));
+    File::put($part, 'half');
+
+    (new Importer(app(Downloader::class), app(CsvReader::class), $lock))->abort();
+
+    expect((new ImportLock)->isLocked())->toBeFalse()
+        ->and((new ImportLock)->metadata())->toBeNull()
+        ->and(File::exists($part))->toBeFalse();
 });

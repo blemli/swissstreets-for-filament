@@ -10,7 +10,6 @@ use Blemli\Swissstreets\Facades\Swissstreets;
 use Blemli\Swissstreets\Models\Address;
 use Closure;
 use Filament\Notifications\Notification;
-use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +24,7 @@ class Importer
     public function __construct(
         protected Downloader $downloader,
         protected CsvReader $reader,
+        protected ImportLock $lock,
     ) {}
 
     /** Called with the number of rows processed so far. */
@@ -38,15 +38,19 @@ class Importer
     /**
      * @param  string|null  $file  Local .zip or .csv instead of downloading (fully offline).
      * @param  bool  $force  Import even when the remote file is unchanged.
+     * @param  bool  $unlock  Release a lock left behind by a killed run first.
+     * @param  string  $trigger  cli|schedule|panel — recorded next to the lock.
+     *
+     * @throws ImportFailed when another import holds the lock or swisstopo cannot be reached
      */
-    public function run(?string $file = null, bool $force = false): ImportResult
+    public function run(?string $file = null, bool $force = false, bool $unlock = false, string $trigger = 'cli'): ImportResult
     {
-        $lock = Cache::lock('swissstreets:import', 7200);
+        if ($unlock) {
+            $this->lock->forceRelease();
+        }
 
-        try {
-            $lock->block(5);
-        } catch (LockTimeoutException) {
-            throw new RuntimeException('Another swissstreets import is still running.');
+        if (! $this->lock->acquire($trigger)) {
+            throw ImportFailed::locked($this->lock);
         }
 
         try {
@@ -56,13 +60,23 @@ class Importer
 
             throw $e;
         } finally {
-            $lock->release();
+            $this->lock->release();
         }
 
         $this->notify($result);
         ImportFinished::dispatch($result);
 
         return $result;
+    }
+
+    /**
+     * Signal handler's exit path: PHP runs no finally blocks when the process is
+     * killed, so the lock and the half-written download are freed by hand.
+     */
+    public function abort(): void
+    {
+        $this->lock->release();
+        $this->downloader->cleanup();
     }
 
     protected function import(?string $file, bool $force): ImportResult

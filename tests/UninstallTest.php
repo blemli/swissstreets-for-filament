@@ -1,7 +1,10 @@
 <?php
 
 use Blemli\Swissstreets\Commands\UninstallCommand;
+use Blemli\Swissstreets\Import\Downloader;
+use Blemli\Swissstreets\Import\ImportLock;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
@@ -113,4 +116,16 @@ it('keeps console output English regardless of locale', function () {
     $this->artisan('swissstreets:uninstall', ['--force' => true])
         ->expectsOutputToContain('was uninstalled')
         ->assertSuccessful();
+});
+
+it('forgets the import lock and the version stamp', function () {
+    Cache::lock(ImportLock::KEY, 60)->get();
+    Cache::put(ImportLock::META_KEY, ['pid' => 1, 'host' => 'x', 'started_at' => now()->toIso8601String(), 'trigger' => 'cli'], 60);
+    Cache::forever(Downloader::VERSION_CACHE_KEY, 'v1');
+
+    $this->artisan('swissstreets:uninstall', ['--force' => true])->assertSuccessful();
+
+    expect((new ImportLock)->isLocked())->toBeFalse()
+        ->and((new ImportLock)->metadata())->toBeNull()
+        ->and(Cache::get(Downloader::VERSION_CACHE_KEY))->toBeNull();
 });

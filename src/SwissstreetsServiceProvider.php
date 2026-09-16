@@ -50,7 +50,12 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
             return;
         }
 
-        $command->call('swissstreets:import');
+        if ($command->call('swissstreets:import') !== InstallCommand::SUCCESS) {
+            // The importer already said what went wrong; the install still exits non-zero
+            // so provisioning scripts notice, and the next step is spelled out.
+            $command->importFailed = true;
+            $command->warn('The address import did not finish. Run it again: php artisan swissstreets:import');
+        }
     }
 
     /**

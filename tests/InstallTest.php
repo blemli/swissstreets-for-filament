@@ -5,6 +5,7 @@ use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 
 it('asks for a time and writes the nightly import into routes/console.php', function () {
     $this->artisan('swissstreets:install')
@@ -94,4 +95,20 @@ it('runs the import when asked to at the end of the install', function () {
         ->assertSuccessful();
 
     expect(Address::count())->toBe(8);
+});
+
+it('exits non-zero and points at the import command when the import fails', function () {
+    Sleep::fake();
+    Http::fake(['*' => Http::failedConnection()]);
+
+    $this->artisan('swissstreets:install')
+        ->expectsConfirmation('Would you like to run the migrations now?', 'no')
+        ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
+        ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'yes')
+        ->expectsOutputToContain('Could not reach swisstopo')
+        ->expectsOutputToContain('Run it again: php artisan swissstreets:import')
+        ->doesntExpectOutputToContain('cURL error')
+        ->assertFailed();
+
+    expect(Address::count())->toBe(0);
 });

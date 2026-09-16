@@ -2,8 +2,11 @@
 
 namespace Blemli\Swissstreets\Commands;
 
+use Blemli\Swissstreets\Import\Downloader;
+use Blemli\Swissstreets\Import\ImportLock;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Schema;
@@ -22,6 +25,7 @@ class UninstallCommand extends Command
         $this->removePublishedFiles();
         $this->removeStorage();
         $this->removeSchedule();
+        $this->forgetImportState();
 
         $registrations = $this->findPluginRegistrations();
 
@@ -126,6 +130,16 @@ class UninstallCommand extends Command
             $installer->remove();
             $this->line('  Removed the nightly import from routes/console.php.');
         }
+    }
+
+    /**
+     * A reinstall within the lock TTL of a killed run must not hit "still running",
+     * and a fresh table must not skip the download as "unchanged".
+     */
+    protected function forgetImportState(): void
+    {
+        (new ImportLock)->forceRelease();
+        Cache::forget(Downloader::VERSION_CACHE_KEY);
     }
 
     protected function removeStorage(): void
