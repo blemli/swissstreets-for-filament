@@ -3,6 +3,8 @@
 namespace Blemli\Swissstreets\Resources;
 
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Blemli\Swissstreets\Import\ImportLock;
 use Blemli\Swissstreets\Models\Address;
 use Blemli\Swissstreets\Resources\AddressResource\Pages\ListAddresses;
 use Filament\Actions\Action;
@@ -16,7 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AddressResource extends Resource
+class AddressResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Address::class;
 
@@ -47,6 +49,25 @@ class AddressResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    /**
+     * The "Import" button: an AddressPolicy::import() decides when the app has
+     * one (Filament Shield generates it from the prefixes below), else allowed.
+     */
+    public static function canImport(): bool
+    {
+        return static::can('import');
+    }
+
+    /**
+     * Filament Shield: view_any_address, view_address, import_address.
+     *
+     * @return array<string>
+     */
+    public static function getPermissionPrefixes(): array
+    {
+        return ['view_any', 'view', 'import'];
     }
 
     public static function getEloquentQuery(): Builder
@@ -127,6 +148,8 @@ class AddressResource extends Resource
                     ->url(fn (Address $record): ?string => $record->mapUrl(), shouldOpenInNewTab: true)
                     ->visible(fn (Address $record): bool => $record->mapUrl() !== null),
             ])
+            // While an import runs the header button is disabled; poll so it comes back on its own.
+            ->poll(fn (): ?string => app(ImportLock::class)->isLocked() ? '15s' : null)
             ->paginated([25, 50, 100]);
     }
 

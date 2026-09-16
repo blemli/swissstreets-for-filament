@@ -81,4 +81,14 @@ return [
         'summary_days' => ':days g',
         'summary_failed' => ':count fallite',
     ],
+    'import' => [
+        'action' => 'Importa da swisstopo',
+        'running' => 'Importazione in corso…',
+        'running_since' => 'Importazione in corso dalle :since',
+        'heading' => 'Importare il registro svizzero degli indirizzi?',
+        'description' => 'Scarica ~140 MB da swisstopo e richiede alcuni minuti; se il registro è invariato non cambia nulla. Riceverai una notifica al termine.',
+        'queued' => 'Importazione in coda — riceverai una notifica al termine.',
+        'locked' => 'Un’importazione è già in corso.',
+        'unchanged' => 'Il registro non è cambiato dall’ultima importazione.',
+    ],
 ];

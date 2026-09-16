@@ -46,7 +46,7 @@ class CustomerResource extends Resource { use SearchesAddressGlobally; }   // th
 
 Events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, import or `->freetext()` form) and `ImportFinished` (with the `ImportResult`) under `Blemli\Swissstreets\Events`.
 
-Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel, `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->health()` registers the health check below. Removed addresses are soft-deleted and logged. Remove everything with `php artisan swissstreets:uninstall`.
+Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel (with an "Import from swisstopo" button that queues the import — gate it with `AddressPolicy::import()`, which Filament Shield generates as `import_address`), `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->health()` registers the health check below. Removed addresses are soft-deleted and logged. Remove everything with `php artisan swissstreets:uninstall`.
 
 ## Supported plugins
 

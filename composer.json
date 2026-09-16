@@ -48,7 +48,10 @@
     "autoload": {
         "psr-4": {
             "Blemli\\Swissstreets\\": "src/"
-        }
+        },
+        "files": [
+            "src/Support/shield-shim.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

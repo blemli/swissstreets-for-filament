@@ -81,4 +81,14 @@ return [
         'summary_days' => ':days T',
         'summary_failed' => ':count fehlgeschlagen',
     ],
+    'import' => [
+        'action' => 'Von swisstopo importieren',
+        'running' => 'Import läuft…',
+        'running_since' => 'Import läuft seit :since',
+        'heading' => 'Schweizer Adressregister importieren?',
+        'description' => 'Lädt ~140 MB von swisstopo und dauert einige Minuten; bei unverändertem Register ändert sich nichts. Du wirst benachrichtigt, sobald es fertig ist.',
+        'queued' => 'Import eingereiht — du wirst benachrichtigt, sobald er fertig ist.',
+        'locked' => 'Es läuft bereits ein Import.',
+        'unchanged' => 'Das Register hat sich seit dem letzten Import nicht verändert.',
+    ],
 ];

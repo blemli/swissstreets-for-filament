@@ -1,7 +1,9 @@
 <?php
 
+use Blemli\Swissstreets\Import\Downloader;
 use Blemli\Swissstreets\Import\Importer;
 use Blemli\Swissstreets\Swissstreets;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 it('will not use debugging functions')
     ->expect(['dd', 'dump', 'ray', 'var_dump'])
@@ -48,3 +50,15 @@ it('has no hard-coded nightly time left', function () {
         expect(file_get_contents($file))->not->toContain("'03:00'");
     }
 });
+
+it('never runs the import inside a panel request')
+    ->expect('Blemli\\Swissstreets\\Resources')
+    ->not->toUse([Importer::class, Downloader::class]);
+
+it('queues every job')
+    ->expect('Blemli\\Swissstreets\\Jobs')
+    ->toImplement(ShouldQueue::class);
+
+it('keeps Filament\'s CSV importer out of the package')
+    ->expect('Blemli\\Swissstreets')
+    ->not->toUse('Filament\\Actions\\ImportAction');

@@ -82,4 +82,14 @@ return [
         'summary_days' => ':days d',
         'summary_failed' => ':count fallidas',
     ],
+    'import' => [
+        'action' => 'Importar da swisstopo',
+        'running' => 'Import en cuors…',
+        'running_since' => 'Import en cuors dapi :since',
+        'heading' => 'Importar il register svizzer da las adressas?',
+        'description' => 'Chargia ~140 MB da swisstopo e dura in pèr minutas; sch’il register n’è betg midà, na sa mida nagut. Ti vegns infurmà cur ch’igl è finì.',
+        'queued' => 'Import è en la colonna — ti vegns infurmà cur ch’igl è finì.',
+        'locked' => 'In import è gia en cuors.',
+        'unchanged' => 'Il register n’è betg midà dapi l’ultim import.',
+    ],
 ];

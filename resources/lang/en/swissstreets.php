@@ -81,4 +81,14 @@ return [
         'summary_days' => ':days d',
         'summary_failed' => ':count failed',
     ],
+    'import' => [
+        'action' => 'Import from swisstopo',
+        'running' => 'Import running…',
+        'running_since' => 'Import running since :since',
+        'heading' => 'Import the Swiss address register?',
+        'description' => 'Downloads ~140 MB from swisstopo and takes a few minutes; nothing changes if the register is unchanged. You will be notified when it is done.',
+        'queued' => 'Import queued — you will be notified when it is done.',
+        'locked' => 'An import is already running.',
+        'unchanged' => 'The register has not changed since the last import.',
+    ],
 ];

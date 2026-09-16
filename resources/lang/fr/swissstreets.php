@@ -81,4 +81,14 @@ return [
         'summary_days' => ':days j',
         'summary_failed' => ':count échouées',
     ],
+    'import' => [
+        'action' => 'Importer depuis swisstopo',
+        'running' => 'Importation en cours…',
+        'running_since' => 'Importation en cours depuis :since',
+        'heading' => 'Importer le registre des adresses suisses ?',
+        'description' => 'Télécharge ~140 Mo depuis swisstopo et prend quelques minutes ; rien ne change si le registre est inchangé. Vous serez notifié à la fin.',
+        'queued' => 'Importation mise en file — vous serez notifié à la fin.',
+        'locked' => 'Une importation est déjà en cours.',
+        'unchanged' => 'Le registre n’a pas changé depuis la dernière importation.',
+    ],
 ];
