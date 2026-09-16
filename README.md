@@ -15,7 +15,7 @@ composer require blemli/swissstreets-for-filament
 php artisan swissstreets:install
 ```
 
-The installer schedules the nightly `swissstreets:import` in `routes/console.php` and runs the first import. Transient network errors against swisstopo are retried (2 s / 5 s / 10 s); a failed import exits non-zero and says what to do. A run killed mid-import leaves its lock behind — the next run says who held it since when, heals itself when that process is gone from the same host, or takes `php artisan swissstreets:import --unlock`.
+The installer schedules the nightly `swissstreets:import` in `routes/console.php` (suggested time 03:00–04:59, hashed from the app name so not every app hits swisstopo in the same minute) and runs the first import. Transient network errors against swisstopo are retried (2 s / 5 s / 10 s); a failed import exits non-zero and says what to do. A run killed mid-import leaves its lock behind — the next run says who held it since when, heals itself when that process is gone from the same host, or takes `php artisan swissstreets:import --unlock`.
 
 ## Use
 

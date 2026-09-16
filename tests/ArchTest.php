@@ -42,3 +42,9 @@ it('keeps spatie/laravel-activitylog behind the availability guard')
 it('ships the resource concerns as traits')
     ->expect('Blemli\\Swissstreets\\Resources\\Concerns')
     ->toBeTraits();
+
+it('has no hard-coded nightly time left', function () {
+    foreach (glob(__DIR__ . '/../src/**/*.php') ?: [] as $file) {
+        expect(file_get_contents($file))->not->toContain("'03:00'");
+    }
+});

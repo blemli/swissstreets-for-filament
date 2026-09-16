@@ -2,6 +2,7 @@
 
 namespace Blemli\Swissstreets\Support;
 
+use Blemli\Swissstreets\SwissstreetsServiceProvider;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -20,6 +21,25 @@ class ScheduleInstaller
     public function isInstalled(): bool
     {
         return File::exists($this->path()) && str_contains(File::get($this->path()), self::MARKER);
+    }
+
+    /**
+     * Default for the installer's question: 03:00–04:59, one fixed minute per
+     * app and plugin (crc32 of both names), so the verwaltis — and the blemli
+     * plugins inside one — do not all hit swisstopo in the same minute. The
+     * literal lands in routes/console.php, so it stays greppable and editable.
+     */
+    public static function defaultTime(): string
+    {
+        $app = (string) config('app.name');
+
+        if ($app === '' || $app === 'Laravel') {
+            $app = (string) config('app.url');
+        }
+
+        $minutes = crc32($app . SwissstreetsServiceProvider::$name) % 120;
+
+        return sprintf('%02d:%02d', 3 + intdiv($minutes, 60), $minutes % 60);
     }
 
     public static function isValidTime(string $time): bool

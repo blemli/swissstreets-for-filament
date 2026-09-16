@@ -53,7 +53,7 @@ it('skips the schedule on an empty answer and prints the snippet', function () {
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
         ->expectsOutputToContain('Skipped. Add it yourself when you are ready:')
-        ->expectsOutputToContain("Schedule::command('swissstreets:import')")
+        ->expectsOutputToContain("->dailyAt('" . ScheduleInstaller::defaultTime() . "')")
         ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
         ->assertSuccessful();
@@ -148,4 +148,24 @@ it('does not ask about the health check when it is already enabled', function ()
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
         ->assertSuccessful();
+});
+
+it('offers a nightly minute hashed from app and plugin name', function () {
+    config()->set('app.name', 'fotimo');
+    $time = ScheduleInstaller::defaultTime();
+
+    expect($time)->toBe('04:09')
+        ->and(ScheduleInstaller::isValidTime($time))->toBeTrue()
+        ->and($time)->toBeGreaterThanOrEqual('03:00')->toBeLessThanOrEqual('04:59');
+
+    config()->set('app.name', 'audiobeam');
+    expect(ScheduleInstaller::defaultTime())->toBe('03:26');
+
+    // The Laravel default name would make every unconfigured app collide — the URL steps in.
+    config()->set('app.name', 'Laravel');
+    config()->set('app.url', 'https://a.example');
+    $a = ScheduleInstaller::defaultTime();
+    config()->set('app.url', 'https://b.example');
+
+    expect(ScheduleInstaller::defaultTime())->not->toBe($a);
 });

@@ -109,15 +109,16 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
             return;
         }
 
-        $time = trim((string) $command->ask('Schedule the nightly address import at (HH:MM, empty to skip)', '03:00'));
+        $default = ScheduleInstaller::defaultTime();
+        $time = trim((string) $command->ask('Schedule the nightly address import at (HH:MM, empty to skip)', $default));
 
         while ($time !== '' && ! ScheduleInstaller::isValidTime($time)) {
-            $time = trim((string) $command->ask('Please enter a time as HH:MM (empty to skip)', '03:00'));
+            $time = trim((string) $command->ask('Please enter a time as HH:MM (empty to skip)', $default));
         }
 
         if ($time === '') {
             $command->line('Skipped. Add it yourself when you are ready:');
-            $command->line($installer->snippet('03:00'));
+            $command->line($installer->snippet($default));
 
             return;
         }
