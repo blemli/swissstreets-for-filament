@@ -2,6 +2,10 @@
 
 All notable changes to `swissstreets-for-filament` will be documented in this file.
 
+## v0.2.1 - 2026-09-16
+
+- Type-ahead: search debounce 250 ms instead of Filament's 1000 ms, single characters ignored, later words matched with native `instr()` on SQLite — every keystroke now costs one short round trip
+
 ## v0.2.0 - 2026-09-15
 
 - `MapPicker` form field: Leaflet map with swisstopo tiles, register search jumps the pin, click or drag places it anywhere, writes latitude/longitude (and optionally the address id); dark mode aware; tiles and Leaflet URLs configurable for offline hosting

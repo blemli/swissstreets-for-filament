@@ -40,6 +40,8 @@ class Address extends Select
         $this->noSearchResultsMessage(fn (): string => __('swissstreets-for-filament::swissstreets.field.no_results'));
         $this->optionsLimit(50);
         $this->native(false);
+        // Filament waits a full second by default — far too long for type-ahead.
+        $this->searchDebounce(250);
 
         $this->getSearchResultsUsing(fn (string $search, Get $get): array => $this->searchAddresses($search, $get));
         $this->getOptionLabelUsing(fn (mixed $value): ?string => $this->optionLabel($value));
@@ -198,7 +200,8 @@ class Address extends Select
     {
         $search = trim($search);
 
-        if ($search === '') {
+        // One character would order hundreds of thousands of rows for nothing.
+        if (mb_strlen($search) < 2) {
             return [];
         }
 
@@ -266,6 +269,7 @@ class Address extends Select
                 Select::make($zipField)
                     ->label(fn (): string => __('swissstreets-for-filament::swissstreets.field.zip'))
                     ->searchable()
+                    ->searchDebounce(250)
                     ->native(false)
                     ->dehydrated(false)
                     ->live()

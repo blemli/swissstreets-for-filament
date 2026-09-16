@@ -199,9 +199,9 @@ class Address extends Model
                         }
                     }
                 } else {
-                    $query->where('street', 'like', "%{$token}%")
-                        ->orWhere('locality', 'like', "{$token}%")
-                        ->orWhere('commune', 'like', "{$token}%");
+                    self::whereContains($query, 'street', $token);
+                    self::whereContains($query, 'locality', $token, prefix: true);
+                    self::whereContains($query, 'commune', $token, prefix: true);
                 }
 
                 if (preg_match('/^\d{1,3}$/', $token)) {
@@ -213,6 +213,29 @@ class Address extends Model
                 }
             });
         }
+    }
+
+    /**
+     * Case-insensitive contains/prefix match. On SQLite this uses the native
+     * instr() instead of LIKE, so an app that overrides like() in PHP (for
+     * unicode-aware matching) does not turn every search into a PHP loop.
+     *
+     * @param  Builder<static>  $query
+     */
+    protected static function whereContains(Builder $query, string $column, string $token, bool $prefix = false): void
+    {
+        if ($query->getModel()->getConnection()->getDriverName() === 'sqlite') {
+            $needle = mb_strtolower($token);
+
+            $query->orWhereRaw(
+                $prefix ? "instr(lower({$column}), ?) = 1" : "instr(lower({$column}), ?) > 0",
+                [$needle],
+            );
+
+            return;
+        }
+
+        $query->orWhere($column, 'like', ($prefix ? '' : '%') . "{$token}%");
     }
 
     /**

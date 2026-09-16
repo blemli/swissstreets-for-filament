@@ -21,6 +21,15 @@ function fieldSearch(Address $field, string $search): array
     return $field->getSearchQuery($search, contains: true)->limit(50)->get()->pluck('line', 'egaid')->all();
 }
 
+it('ignores single-character searches and debounces quickly', function () {
+    $field = Address::make('address_id');
+    $field->container(Schema::make(new CreateCustomer)->statePath('data'));
+
+    expect($field->getSearchResults('s'))->toBe([])
+        ->and($field->getSearchResults('sp'))->toHaveKey('100297441')
+        ->and($field->getSearchDebounce())->toBe(250);
+});
+
 it('falls back to a contains match when no word starts with the input', function () {
     $field = Address::make('address_id');
     $field->container(Schema::make(new CreateCustomer)->statePath('data'));
