@@ -71,4 +71,14 @@ return [
         'removed' => 'Le système a supprimé l’adresse',
         'restored' => 'Le système a restauré l’adresse',
     ],
+    'health' => [
+        'label' => 'Registre des adresses suisses',
+        'empty' => 'Aucune adresse importée pour l’instant.',
+        'stale' => 'Aucune adresse modifiée depuis :days jours (limite :max).',
+        'failing' => 'Les :count dernières importations ont échoué : :error',
+        'ok' => 'Registre modifié :ago.',
+        'summary_empty' => 'Vide',
+        'summary_days' => ':days j',
+        'summary_failed' => ':count échouées',
+    ],
 ];

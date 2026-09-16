@@ -4,6 +4,8 @@ All notable changes to `swissstreets-for-filament` will be documented in this fi
 
 ## Unreleased
 
+- spatie/laravel-health check `Blemli\Swissstreets\Health\AddressRegisterCheck`: red when no address was created, updated or removed for 21 days, yellow when the last 3 imports failed in a row. Enable with `SwissstreetsPlugin::make()->health()` or the `health.enabled` config key; the installer offers it when spatie/laravel-health is installed. Thresholds `health.max_age_days` / `health.max_failed_runs` (or `->health(maxAgeDays:, maxFailedRuns:)`). Every import run now records its outcome (`Import\ImportStatus`).
+
 - Import: transient network errors against swisstopo (connection reset, DNS hiccup) are retried with backoff (2 s / 5 s / 10 s) on both the version probe and the download; a failing probe no longer aborts the run, it just downloads. Errors read "Could not reach swisstopo (data.geo.admin.ch): … run again: php artisan swissstreets:import" instead of raw cURL text, on the console and in the panel notification. A failed download leaves no `register.csv.zip.part` behind.
 - Install: a failed first import makes `swissstreets:install` exit non-zero and print the command to run again.
 - Import lock: `swissstreets:import --unlock` releases a lock left behind by a killed run (and the scheduler's `withoutOverlapping` mutex). The refusal names the holder ("running since 14:03, PID 4711 on host, started from the command line"); a lock whose process died on the same host is released automatically. Ctrl-C / SIGTERM now release the lock and delete the half download. `swissstreets:uninstall` forgets lock and version stamp. Lock TTL 4 h (was 2 h). New `Import\ImportLock` and `Import\ImportFailed`.

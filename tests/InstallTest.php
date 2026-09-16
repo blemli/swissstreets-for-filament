@@ -7,11 +7,17 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 
+beforeEach(function () {
+    // The fixture panel switches health on; the installer only asks while it is off.
+    config()->set('swissstreets-for-filament.health.enabled', false);
+});
+
 it('asks for a time and writes the nightly import into routes/console.php', function () {
     $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '04:15')
         ->expectsOutputToContain('Created routes/console.php with the nightly import at 04:15.')
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
         ->expectsOutputToContain('Later then: php artisan swissstreets:import')
         ->assertSuccessful();
@@ -48,6 +54,7 @@ it('skips the schedule on an empty answer and prints the snippet', function () {
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
         ->expectsOutputToContain('Skipped. Add it yourself when you are ready:')
         ->expectsOutputToContain("Schedule::command('swissstreets:import')")
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
         ->assertSuccessful();
 
@@ -59,6 +66,7 @@ it('rejects a malformed time until a valid one is given', function () {
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '3 am')
         ->expectsQuestion('Please enter a time as HH:MM (empty to skip)', '23:59')
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
         ->assertSuccessful();
 
@@ -90,6 +98,7 @@ it('runs the import when asked to at the end of the install', function () {
     $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'yes')
         ->expectsOutputToContain('Initial import')
         ->assertSuccessful();
@@ -104,6 +113,7 @@ it('exits non-zero and points at the import command when the import fails', func
     $this->artisan('swissstreets:install')
         ->expectsConfirmation('Would you like to run the migrations now?', 'no')
         ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'no')
         ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'yes')
         ->expectsOutputToContain('Could not reach swisstopo')
         ->expectsOutputToContain('Run it again: php artisan swissstreets:import')
@@ -111,4 +121,31 @@ it('exits non-zero and points at the import command when the import fails', func
         ->assertFailed();
 
     expect(Address::count())->toBe(0);
+});
+
+it('enables the health check in the published config when asked', function () {
+    config()->set('swissstreets-for-filament.health.enabled', false);
+
+    $this->artisan('swissstreets:install')
+        ->expectsConfirmation('Would you like to run the migrations now?', 'no')
+        ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
+        ->expectsConfirmation('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', 'yes')
+        ->expectsOutputToContain('Enabled health.enabled in config/swissstreets-for-filament.php.')
+        ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
+        ->assertSuccessful();
+
+    $config = require config_path('swissstreets-for-filament.php');
+
+    expect($config['health']['enabled'])->toBeTrue()
+        ->and($config['health']['max_age_days'])->toBe(21);
+});
+
+it('does not ask about the health check when it is already enabled', function () {
+    config()->set('swissstreets-for-filament.health.enabled', true);
+
+    $this->artisan('swissstreets:install')
+        ->expectsConfirmation('Would you like to run the migrations now?', 'no')
+        ->expectsQuestion('Schedule the nightly address import at (HH:MM, empty to skip)', '')
+        ->expectsConfirmation('Import the Swiss address register now? (downloads ~140 MB, takes a few minutes)', 'no')
+        ->assertSuccessful();
 });

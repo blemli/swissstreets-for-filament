@@ -113,6 +113,25 @@ class SwissstreetsPlugin implements Plugin
         return $this;
     }
 
+    /**
+     * Register the "Swiss address register" check with spatie/laravel-health:
+     * red after $maxAgeDays without a changed row, yellow after $maxFailedRuns failed imports.
+     */
+    public function health(bool $condition = true, ?int $maxAgeDays = null, ?int $maxFailedRuns = null): static
+    {
+        $this->config['health.enabled'] = $condition;
+
+        if ($maxAgeDays !== null) {
+            $this->config['health.max_age_days'] = $maxAgeDays;
+        }
+
+        if ($maxFailedRuns !== null) {
+            $this->config['health.max_failed_runs'] = $maxFailedRuns;
+        }
+
+        return $this;
+    }
+
     // ---- panel -------------------------------------------------------------
 
     /** Show the read-only, searchable "Addresses" table in the panel (off by default). */

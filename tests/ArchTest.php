@@ -28,3 +28,13 @@ it('creates the import lock in exactly one class', function () {
 
     expect($owners)->toBe(['ImportLock.php']);
 });
+
+it('keeps spatie/laravel-health confined to the Health namespace')
+    ->expect('Blemli\\Swissstreets')
+    ->not->toUse('Spatie\\Health')
+    ->ignoring('Blemli\\Swissstreets\\Health');
+
+it('keeps spatie/laravel-activitylog behind the availability guard')
+    ->expect('Blemli\\Swissstreets')
+    ->not->toUse('Spatie\\Activitylog')
+    ->ignoring([Swissstreets::class, Importer::class]);

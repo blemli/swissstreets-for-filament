@@ -43,6 +43,6 @@ Address::search('bahnhof zürich')->near($lat, $lng, withinKm: 5)->used()
 
 Events: `AddressAdded`, `AddressRemoved`, `AddressRestored` (per address, import or `->freetext()` form) and `ImportFinished` (with the `ImportResult`) under `Blemli\Swissstreets\Events`.
 
-Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel, `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`. Removed addresses are soft-deleted, logged and recorded with spatie/laravel-activitylog when installed. Remove everything with `php artisan swissstreets:uninstall`.
+Plugin options: `->cantons([...])` limits the import, `->table()` adds the browsable addresses table to the panel, `->notify(User::class)` (or a closure returning users) sends a database notification after each import that changed something, `->swissgrid()` keeps LV95 easting/northing, `->unofficial()`, `->planned()`, `->health()` registers the health check below. Removed addresses are soft-deleted and logged. Remove everything with `php artisan swissstreets:uninstall`.
 
 MIT © [blemli](https://github.com/blemli)

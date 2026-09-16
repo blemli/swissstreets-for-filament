@@ -56,6 +56,15 @@ return [
     // Record changes with spatie/laravel-activitylog when it is installed.
     'activitylog' => true,
 
+    // spatie/laravel-health check (SwissstreetsPlugin::make()->health()), when it is installed.
+    'health' => [
+        'enabled' => false,
+        // Red when no address was created, updated or removed for this many days.
+        'max_age_days' => 21,
+        // Yellow when this many imports in a row failed.
+        'max_failed_runs' => 3,
+    ],
+
     // Filament database notification after each import: null, a user model
     // class (notifies all), or a callable returning users / a collection.
     'notify' => null,

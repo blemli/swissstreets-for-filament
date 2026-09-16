@@ -23,6 +23,7 @@ use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Health\HealthServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -132,6 +133,7 @@ class TestCase extends Orchestra
             WidgetsServiceProvider::class,
             SwissstreetsServiceProvider::class,
             ActivitylogServiceProvider::class,
+            HealthServiceProvider::class,
         ];
 
         sort($providers);

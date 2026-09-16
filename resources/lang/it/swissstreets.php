@@ -71,4 +71,14 @@ return [
         'removed' => 'Il sistema ha rimosso l’indirizzo',
         'restored' => 'Il sistema ha ripristinato l’indirizzo',
     ],
+    'health' => [
+        'label' => 'Registro svizzero degli indirizzi',
+        'empty' => 'Nessun indirizzo ancora importato.',
+        'stale' => 'Nessun indirizzo modificato da :days giorni (limite :max).',
+        'failing' => 'Le ultime :count importazioni sono fallite: :error',
+        'ok' => 'Registro modificato :ago.',
+        'summary_empty' => 'Vuoto',
+        'summary_days' => ':days g',
+        'summary_failed' => ':count fallite',
+    ],
 ];

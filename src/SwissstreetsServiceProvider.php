@@ -5,7 +5,9 @@ namespace Blemli\Swissstreets;
 use Blemli\Swissstreets\Commands\ImportCommand;
 use Blemli\Swissstreets\Commands\InstallCommand;
 use Blemli\Swissstreets\Commands\UninstallCommand;
+use Blemli\Swissstreets\Health\HealthIntegration;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
+use Illuminate\Support\Facades\File;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -28,6 +30,7 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
             ->askToRunMigrations()
             ->endWith(function (InstallCommand $command): void {
                 $this->askForSchedule($command);
+                $this->askForHealthCheck($command);
                 $this->askToImport($command);
             });
 
@@ -37,6 +40,40 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(Swissstreets::class);
+    }
+
+    public function packageBooted(): void
+    {
+        // After every provider: the panel plugin may have switched health.enabled on.
+        $this->app->booted(fn () => HealthIntegration::register());
+    }
+
+    /**
+     * spatie/laravel-health present: offer the register check. The switch lives in
+     * the published config (or SwissstreetsPlugin::make()->health()) — never in
+     * the app's providers, that is the developer's code.
+     */
+    protected function askForHealthCheck(InstallCommand $command): void
+    {
+        if (! HealthIntegration::installed() || HealthIntegration::enabled()) {
+            return;
+        }
+
+        if (! $command->confirm('spatie/laravel-health is installed. Enable the address register health check (red after 21 days without changes, yellow after 3 failed imports)?', true)) {
+            return;
+        }
+
+        $config = config_path('swissstreets-for-filament.php');
+        $pattern = "/('health' => \[\s*(?:\/\/[^\n]*\n\s*)*'enabled' => )false/";
+
+        if (File::exists($config) && preg_match($pattern, File::get($config))) {
+            File::put($config, (string) preg_replace($pattern, '$1true', File::get($config), 1));
+            $command->info('Enabled health.enabled in config/swissstreets-for-filament.php.');
+
+            return;
+        }
+
+        $command->line('Add ->health() to your panel: SwissstreetsPlugin::make()->health()');
     }
 
     /**

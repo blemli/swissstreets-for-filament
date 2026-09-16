@@ -36,6 +36,6 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->plugin(SwissstreetsPlugin::make()->swissgrid()->table()->notify(User::class));
+            ->plugin(SwissstreetsPlugin::make()->swissgrid()->table()->notify(User::class)->health());
     }
 }

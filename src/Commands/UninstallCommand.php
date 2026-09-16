@@ -4,6 +4,7 @@ namespace Blemli\Swissstreets\Commands;
 
 use Blemli\Swissstreets\Import\Downloader;
 use Blemli\Swissstreets\Import\ImportLock;
+use Blemli\Swissstreets\Import\ImportStatus;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -139,6 +140,7 @@ class UninstallCommand extends Command
     protected function forgetImportState(): void
     {
         (new ImportLock)->forceRelease();
+        (new ImportStatus)->forget();
         Cache::forget(Downloader::VERSION_CACHE_KEY);
     }
 

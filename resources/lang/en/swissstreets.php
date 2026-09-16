@@ -71,4 +71,14 @@ return [
         'removed' => 'System removed address',
         'restored' => 'System restored address',
     ],
+    'health' => [
+        'label' => 'Swiss address register',
+        'empty' => 'No addresses imported yet.',
+        'stale' => 'No address changed for :days days (limit :max).',
+        'failing' => 'The last :count imports failed: :error',
+        'ok' => 'Register changed :ago.',
+        'summary_empty' => 'Empty',
+        'summary_days' => ':days d',
+        'summary_failed' => ':count failed',
+    ],
 ];

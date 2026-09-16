@@ -25,6 +25,7 @@ class Importer
         protected Downloader $downloader,
         protected CsvReader $reader,
         protected ImportLock $lock,
+        protected ImportStatus $status = new ImportStatus,
     ) {}
 
     /** Called with the number of rows processed so far. */
@@ -56,12 +57,15 @@ class Importer
         try {
             $result = $this->import($file, $force);
         } catch (Throwable $e) {
+            $this->status->recordFailure($e);
             $this->notifyFailure($e);
 
             throw $e;
         } finally {
             $this->lock->release();
         }
+
+        $this->status->recordSuccess($result);
 
         $this->notify($result);
         ImportFinished::dispatch($result);

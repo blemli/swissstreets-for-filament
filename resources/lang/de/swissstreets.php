@@ -71,4 +71,14 @@ return [
         'removed' => 'System hat Adresse entfernt',
         'restored' => 'System hat Adresse wiederhergestellt',
     ],
+    'health' => [
+        'label' => 'Schweizer Adressregister',
+        'empty' => 'Noch keine Adressen importiert.',
+        'stale' => 'Seit :days Tagen keine Adresse geändert (Limit :max).',
+        'failing' => 'Die letzten :count Importe sind fehlgeschlagen: :error',
+        'ok' => 'Register geändert :ago.',
+        'summary_empty' => 'Leer',
+        'summary_days' => ':days T',
+        'summary_failed' => ':count fehlgeschlagen',
+    ],
 ];

@@ -72,4 +72,14 @@ return [
         'removed' => 'Il sistem ha allontanà l’adressa',
         'restored' => 'Il sistem ha restaurà l’adressa',
     ],
+    'health' => [
+        'label' => 'Register svizzer da las adressas',
+        'empty' => 'Anc naginas adressas importadas.',
+        'stale' => 'Dapi :days dis nagina adressa midada (limita :max).',
+        'failing' => 'Las ultimas :count importaziuns èn fallidas: :error',
+        'ok' => 'Register midà :ago.',
+        'summary_empty' => 'Vid',
+        'summary_days' => ':days d',
+        'summary_failed' => ':count fallidas',
+    ],
 ];
