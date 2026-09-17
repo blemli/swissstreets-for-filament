@@ -80,9 +80,10 @@
                         const start = this.hasPoint() ? [this.state.lat, this.state.lng] : this.config.center
 
                         this.map = L.map(this.$refs.map, { zoomControl: true, attributionControl: false })
+                            .setView(start, this.hasPoint() ? 16 : this.config.zoom)
+
                         // The tile source reference only, no Leaflet prefix — it is a form field, not a map site.
                         L.control.attribution({ prefix: false }).addTo(this.map)
-                            .setView(start, this.hasPoint() ? 16 : this.config.zoom)
 
                         L.tileLayer(this.config.tiles, { attribution: this.config.attribution, maxZoom: 19 }).addTo(this.map)
 
