@@ -210,8 +210,6 @@ class MapPicker extends Field
         return [
             'tiles' => (string) config('swissstreets-for-filament.map.tiles'),
             'attribution' => (string) config('swissstreets-for-filament.map.attribution'),
-            'leafletJs' => (string) config('swissstreets-for-filament.map.leaflet_js'),
-            'leafletCss' => (string) config('swissstreets-for-filament.map.leaflet_css'),
         ];
     }
 

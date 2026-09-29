@@ -5,6 +5,7 @@ use Blemli\Swissstreets\Tests\Fixtures\Shoot;
 use Blemli\Swissstreets\Tests\Fixtures\ShootResource\Pages\CreateShoot;
 use Blemli\Swissstreets\Tests\Fixtures\ShootResource\Pages\EditShoot;
 use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentAsset;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -13,14 +14,32 @@ beforeEach(function () {
     bootPanel();
 });
 
-it('renders the map with the register search and dark-mode styles', function () {
+it('renders the map as an async Alpine component with the register search', function () {
     Livewire::test(CreateShoot::class)
         ->assertSeeHtml('fi-fo-map-picker')
         ->assertSeeHtml('wmts.geo.admin.ch')
-        ->assertSeeHtml('leaflet@1.9.4')
-        ->assertSeeHtml('.dark .fi-fo-map-picker-map')
-        ->assertSeeHtml('fi-fo-map-picker-pin svg { fill: var(--primary-600)')
+        ->assertSeeHtml('x-load="visible"')
+        ->assertSeeHtml(FilamentAsset::getAlpineComponentSrc('map-picker', 'blemli/swissstreets-for-filament'))
+        ->assertSeeHtml('x-load-css')
+        ->assertSeeHtml('leaflet.css')
+        ->assertSeeHtml('map-picker.css')
+        ->assertSeeHtml('x-data="mapPicker(')
+        ->assertDontSeeHtml('window.swissstreetsMapPicker')
         ->assertSee('Click the map or search an address');
+});
+
+it('ships Leaflet and the picker styles as published assets', function () {
+    expect(file_get_contents(__DIR__ . '/../resources/dist/map-picker.js'))->toContain('leaflet')
+        ->and(file_get_contents(__DIR__ . '/../resources/dist/map-picker.css'))->toContain('.dark .fi-fo-map-picker-map')
+        ->and(file_get_contents(__DIR__ . '/../resources/dist/leaflet.css'))->toContain('.leaflet-container');
+});
+
+it('boots the picker inside a select\'s create-option modal, where inline scripts would be inert', function () {
+    Livewire::test(CreateShoot::class)
+        ->mountFormComponentAction('nearby', 'createOption')
+        ->assertSeeHtml('x-data="mapPicker(')
+        ->assertSeeHtml(FilamentAsset::getAlpineComponentSrc('map-picker', 'blemli/swissstreets-for-filament'))
+        ->assertDontSeeHtml('<script>');
 });
 
 it('saves a free pin into the latitude and longitude columns', function () {

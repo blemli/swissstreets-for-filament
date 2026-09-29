@@ -7,6 +7,9 @@ use Blemli\Swissstreets\Commands\InstallCommand;
 use Blemli\Swissstreets\Commands\UninstallCommand;
 use Blemli\Swissstreets\Health\HealthIntegration;
 use Blemli\Swissstreets\Support\ScheduleInstaller;
+use Filament\Support\Assets\AlpineComponent;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Spatie\LaravelPackageTools\Package;
@@ -45,6 +48,15 @@ class SwissstreetsServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // The map picker as an async Alpine component (Leaflet bundled) plus
+        // the two stylesheets it pulls in on demand — `php artisan
+        // filament:assets` publishes them into the consuming app.
+        FilamentAsset::register([
+            AlpineComponent::make('map-picker', __DIR__ . '/../resources/dist/map-picker.js'),
+            Css::make('map-picker', __DIR__ . '/../resources/dist/map-picker.css')->loadedOnRequest(),
+            Css::make('leaflet', __DIR__ . '/../resources/dist/leaflet.css')->loadedOnRequest(),
+        ], 'blemli/swissstreets-for-filament');
+
         // After every provider: the panel plugin may have switched health.enabled on.
         $this->app->booted(fn () => HealthIntegration::register());
     }

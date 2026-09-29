@@ -6,6 +6,7 @@ use Blemli\Swissstreets\Forms\Components\MapPicker;
 use Blemli\Swissstreets\Tests\Fixtures\ShootResource\Pages\CreateShoot;
 use Blemli\Swissstreets\Tests\Fixtures\ShootResource\Pages\EditShoot;
 use Blemli\Swissstreets\Tests\Fixtures\ShootResource\Pages\ListShoots;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -23,6 +24,16 @@ class ShootResource extends Resource
         return $schema->components([
             TextInput::make('name')->required(),
             MapPicker::make('location')->lat('latitude')->lng('longitude')->address('address_id'),
+            // A picker inside a select's create-option modal: the field arrives
+            // through a Livewire morph, not with the page.
+            Select::make('nearby')
+                ->options([])
+                ->dehydrated(false)
+                ->createOptionForm([
+                    TextInput::make('name')->required(),
+                    MapPicker::make('location'),
+                ])
+                ->createOptionUsing(fn (): int => 1),
         ]);
     }
 
