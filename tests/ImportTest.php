@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Spatie\Activitylog\Facades\LogBatch;
 use Spatie\Activitylog\Models\Activity;
 
 it('imports official, real, decimal-free addresses only', function () {
@@ -134,6 +135,33 @@ it('soft deletes addresses that vanished and logs the change', function () {
         ->and((int) $removed->first()->subject_id)->toBe(200000002)
         ->and($removed->first()->properties['address'])->toBe('Bahnhofstrasse 3, 8001 Zürich')
         ->and(Activity::query()->where('event', 'added')->where('subject_id', 200000003)->count())->toBe(1);
+});
+
+it('writes the rows of one delta run as a single activity batch', function () {
+    // The very first full import is not logged per row (the default).
+    config()->set('swissstreets-for-filament.log_initial_import', false);
+    importFixture();
+
+    expect(Activity::query()->count())->toBe(0);
+
+    $csv = str_replace(
+        '200000002;20000001;900002;0;Bahnhofstrasse;3;',
+        '200000003;20000001;900003;0;Bahnhofstrasse;5;',
+        file_get_contents(fixturePath('register.csv')),
+    );
+    $path = sys_get_temp_dir() . '/swissstreets-batch.csv';
+    file_put_contents($path, $csv);
+
+    app(Importer::class)->run($path);
+    File::delete($path);
+
+    $rows = Activity::query()->get();
+
+    expect($rows)->toHaveCount(2)
+        ->and($rows->pluck('event')->sort()->values()->all())->toBe(['added', 'removed'])
+        ->and($rows->pluck('batch_uuid')->unique())->toHaveCount(1)
+        ->and($rows->first()->batch_uuid)->not->toBeNull()
+        ->and(LogBatch::isOpen())->toBeFalse();
 });
 
 it('restores an address that reappears', function () {

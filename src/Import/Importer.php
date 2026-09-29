@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Spatie\Activitylog\Facades\LogBatch;
 use Throwable;
 
 class Importer
@@ -100,13 +101,33 @@ class Importer
         }
 
         $initial = ! Address::withTrashed()->exists();
+        $logRows = ! $initial || (bool) config('swissstreets-for-filament.log_initial_import', false);
+
+        // One activity batch per run: added, restored and removed rows share a
+        // batch_uuid, so a timeline folds the night's sync into a single row.
+        $batch = $logRows && Swissstreets::activitylogAvailable() && ! LogBatch::isOpen();
+
+        if ($batch) {
+            LogBatch::startBatch();
+        }
+
+        try {
+            return $this->importRows($file, $initial, $started, $version, $logRows);
+        } finally {
+            if ($batch) {
+                LogBatch::endBatch();
+            }
+        }
+    }
+
+    protected function importRows(string $file, bool $initial, float $started, ?string $version, bool $logRows): ImportResult
+    {
         // Microsecond precision so two runs within the same second still
         // tell "seen in this run" from "seen in the previous run".
         $now = now()->format('Y-m-d H:i:s.u');
         $stamp = now()->toDateTimeString();
         $mapper = new RowMapper;
         $chunkSize = max(50, (int) config('swissstreets-for-filament.chunk_size', 500));
-        $logRows = ! $initial || (bool) config('swissstreets-for-filament.log_initial_import', false);
 
         $added = $restored = $total = $skipped = $processed = 0;
         $buffer = [];
